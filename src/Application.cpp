@@ -11,7 +11,13 @@
 const float vertices[] = {
     -0.5f, -0.5f, 0.0f,
     0.5f, -0.5, 0.0f,
-    0.0f, 0.5f, 0.0f
+    0.5f, 0.5f, 0.0f,
+    -0.5f, 0.5f, 0.0f
+};
+
+const unsigned short indices[] = {
+    0, 1, 2,
+    2, 3, 0
 };
 
 #define VERTEX_SHADER 1
@@ -152,6 +158,11 @@ int main(void)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    unsigned int indexBuffer;
+    glGenBuffers(1, &indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -169,7 +180,7 @@ int main(void)
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
