@@ -162,13 +162,14 @@ int main(void)
     //Shaders
     uint32_t vertShader = CreateShader(VERTEX_SHADER, "resources/shaders/default_vertex.glsl");
     uint32_t fragShader = CreateShader(FRAGMENT_SHADER, "resources/shaders/default_fragment.glsl");
+    uint32_t blueFragShader = CreateShader(FRAGMENT_SHADER, "resources/shaders/blue_fragment.glsl");
 
-    unsigned int shaderProgram;
+    unsigned int shaderProgram, shaderProgramTwo;
     shaderProgram = glCreateProgram();
+ 
     glAttachShader(shaderProgram, vertShader);
     glAttachShader(shaderProgram, fragShader);
     glLinkProgram(shaderProgram);
-
     int success;
     char infoLog[512];
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
@@ -178,10 +179,21 @@ int main(void)
         spdlog::error("ERROR::SHADER_PROGRAM: {}", infoLog);
     }
 
-    glUseProgram(shaderProgram);
+    shaderProgramTwo = glCreateProgram();
+    glAttachShader(shaderProgramTwo, vertShader);
+    glAttachShader(shaderProgramTwo, blueFragShader);
+    glLinkProgram(shaderProgramTwo);
 
+    glGetProgramiv(shaderProgramTwo, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(shaderProgramTwo, 512, NULL, infoLog);
+        spdlog::error("ERROR::SHADER_PROGRAMTWO: {}", infoLog);
+    }
+   
     glDeleteShader(vertShader);
     glDeleteShader(fragShader);
+    glDeleteShader(blueFragShader);
 
     /*Index buffer
     glGenBuffers(1, &indexBuffer);
@@ -204,9 +216,11 @@ int main(void)
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+        glUseProgram(shaderProgram);
         glBindVertexArray(vaos[0]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+        glUseProgram(shaderProgramTwo);
         glBindVertexArray(vaos[1]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
        
