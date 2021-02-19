@@ -8,19 +8,25 @@
 #include <string>
 #include <sstream>
 
-const float vertices[] = {
+const float triangleOne[] = {
     -0.9f, -0.9f, 0.0f,
     -0.1f, -0.9f, 0.0f,
-    -0.5f, 0.5f, 0.0f,
-    0.1f, -0.9f, 0.0f,
+    -0.5f, 0.5f, 0.0f
+ 
+};
+
+const float triangleTwo[] = {
+       0.1f, -0.9f, 0.0f,
     0.9f, -0.9f, 0.0f,
     0.5f, 0.5f, 0.0f
 };
 
+/*
 const unsigned short indices[] = {
     0, 1, 2,
     3, 4, 5
 };
+*/
 
 #define VERTEX_SHADER 1
 #define FRAGMENT_SHADER 2
@@ -132,16 +138,24 @@ int main(void)
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
       
-    unsigned int vbo, indexBuffer, vao;
+    unsigned int vbos[2], vaos[2];// indexBuffer;
 
     //vertex buffer and vertex array object
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glGenVertexArrays(2, vaos);
+    glGenBuffers(2, vbos);
+
+    glBindVertexArray(vaos[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangleOne), triangleOne, GL_STATIC_DRAW);
     
     //bind vertex buffer to vao
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    //no need to unbind and binding to another straight away
+    glBindVertexArray(vaos[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, vbos[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangleTwo), triangleTwo, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -169,11 +183,11 @@ int main(void)
     glDeleteShader(vertShader);
     glDeleteShader(fragShader);
 
-    //Index buffer
+    /*Index buffer
     glGenBuffers(1, &indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
+    */
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -190,8 +204,11 @@ int main(void)
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-       
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+        glBindVertexArray(vaos[0]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+        glBindVertexArray(vaos[1]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
        
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
