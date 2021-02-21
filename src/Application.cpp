@@ -9,18 +9,11 @@
 #include <sstream>
 
 const float triangleOne[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f, 0.5f, 0.0f
+    -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 
+     0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f
  
 };
-
-const float triangleTwo[] = {
-    0.1f, -0.9f, 0.0f,
-    0.9f, -0.9f, 0.0f,
-    0.5f, 0.5f, 0.0f
-};
-
 
 const unsigned short indices[] = {
     0, 1, 2
@@ -137,33 +130,32 @@ int main(void)
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
       
-    unsigned int vbos[2], vaos[2], indexBuffer;
+    unsigned int vbo, vao, indexBuffer;
 
     //vertex buffer and vertex array object
-    glGenVertexArrays(2, vaos);
-    glGenBuffers(2, vbos);
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
 
-    glBindVertexArray(vaos[0]);
-    glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(triangleOne), triangleOne, GL_STATIC_DRAW);
     
-    //bind vertex buffer to vao
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    //bind vertex buffer to vao by specifying layout
+    //position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    //no need to unbind and binding to another straight away
-    glBindVertexArray(vaos[1]);
-    glBindBuffer(GL_ARRAY_BUFFER, vbos[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangleTwo), triangleTwo, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+    //color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
+   
     //Shaders
     uint32_t vertShader = CreateShader(VERTEX_SHADER, "resources/shaders/default_vertex.glsl");
     uint32_t fragShader = CreateShader(FRAGMENT_SHADER, "resources/shaders/default_fragment.glsl");
-    uint32_t blueFragShader = CreateShader(FRAGMENT_SHADER, "resources/shaders/blue_fragment.glsl");
+   // uint32_t blueFragShader = CreateShader(FRAGMENT_SHADER, "resources/shaders/blue_fragment.glsl");
 
-    unsigned int shaderProgram, shaderProgramTwo;
+    unsigned int shaderProgram;
     shaderProgram = glCreateProgram();
  
     glAttachShader(shaderProgram, vertShader);
@@ -178,26 +170,14 @@ int main(void)
         spdlog::error("ERROR::SHADER_PROGRAM: {}", infoLog);
     }
 
-    shaderProgramTwo = glCreateProgram();
-    glAttachShader(shaderProgramTwo, vertShader);
-    glAttachShader(shaderProgramTwo, blueFragShader);
-    glLinkProgram(shaderProgramTwo);
-
-    glGetProgramiv(shaderProgramTwo, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        glGetProgramInfoLog(shaderProgramTwo, 512, NULL, infoLog);
-        spdlog::error("ERROR::SHADER_PROGRAMTWO: {}", infoLog);
-    }
-   
+  
     glDeleteShader(vertShader);
     glDeleteShader(fragShader);
-    glDeleteShader(blueFragShader);
-
+   
     glGenBuffers(1, &indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    
+    glUseProgram(shaderProgram);
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -214,13 +194,14 @@ int main(void)
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        float time = glfwGetTime();
-        float green = (sin(time) / 2) + 0.5f;
-        int vertexColourLocation = glGetUniformLocation(shaderProgram, "myColor");
-        glUseProgram(shaderProgram);
-        glUniform4f(vertexColourLocation, 0.0f, green, 0.0f, 1.0f);
-        glBindVertexArray(vaos[0]);
+      
+        glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
+        GLenum err;
+        while ((err = glGetError()) != GL_NO_ERROR)
+        {
+            spdlog::error(err);
+        }
         //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
        
        
