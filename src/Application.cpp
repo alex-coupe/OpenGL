@@ -7,12 +7,22 @@
 #include "Shader.h"
 #include "ShaderProgram.h"
 #include "IndexBuffer.h"
+#include "VertexBuffer.h"
 
-const float triangleOne[] = {
-    -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-     0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 
-     0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f
- 
+
+struct Vertex {
+    struct {
+        float x, y, z;
+    } position;
+    struct {
+        float r, g, b;
+    } color;
+};
+
+const std::vector<Vertex> triangle = {
+    {-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f},
+    {0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f},
+    {0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f }
 };
 
 #define VERTEX_SHADER 1
@@ -63,16 +73,14 @@ int main(void)
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
       
-    unsigned int vbo, vao;
+    unsigned int vao;
 
     //vertex buffer and vertex array object
     glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-
     glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangleOne), triangleOne, GL_STATIC_DRAW);
-    
+
+    VertexBuffer vertexBuffer(triangle, GL_STATIC_DRAW);
+       
     //bind vertex buffer to vao by specifying layout
     //position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
