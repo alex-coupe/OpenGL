@@ -6,6 +6,7 @@
 #include "Imgui/imgui_impl_opengl3.h"
 #include "Shader.h"
 #include "ShaderProgram.h"
+#include "IndexBuffer.h"
 
 const float triangleOne[] = {
     -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
@@ -13,11 +14,6 @@ const float triangleOne[] = {
      0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f
  
 };
-
-const unsigned short indices[] = {
-    0, 1, 2
-};
-
 
 #define VERTEX_SHADER 1
 #define FRAGMENT_SHADER 2
@@ -67,7 +63,7 @@ int main(void)
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
       
-    unsigned int vbo, vao, indexBuffer;
+    unsigned int vbo, vao;
 
     //vertex buffer and vertex array object
     glGenVertexArrays(1, &vao);
@@ -95,12 +91,9 @@ int main(void)
   
     vertexShader.DeleteShader();
     fragShader.DeleteShader();
-   
-    glGenBuffers(1, &indexBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
+  
     program.UseProgram();
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -120,13 +113,7 @@ int main(void)
       
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
-        GLenum err;
-        while ((err = glGetError()) != GL_NO_ERROR)
-        {
-            spdlog::error(err);
-        }
-        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-       
+                   
        
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
