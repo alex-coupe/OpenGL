@@ -9,24 +9,23 @@
 #include <sstream>
 
 const float triangleOne[] = {
-    -0.9f, -0.9f, 0.0f,
-    -0.1f, -0.9f, 0.0f,
-    -0.5f, 0.5f, 0.0f
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f, 0.5f, 0.0f
  
 };
 
 const float triangleTwo[] = {
-       0.1f, -0.9f, 0.0f,
+    0.1f, -0.9f, 0.0f,
     0.9f, -0.9f, 0.0f,
     0.5f, 0.5f, 0.0f
 };
 
-/*
+
 const unsigned short indices[] = {
-    0, 1, 2,
-    3, 4, 5
+    0, 1, 2
 };
-*/
+
 
 #define VERTEX_SHADER 1
 #define FRAGMENT_SHADER 2
@@ -138,7 +137,7 @@ int main(void)
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
       
-    unsigned int vbos[2], vaos[2];// indexBuffer;
+    unsigned int vbos[2], vaos[2], indexBuffer;
 
     //vertex buffer and vertex array object
     glGenVertexArrays(2, vaos);
@@ -195,11 +194,10 @@ int main(void)
     glDeleteShader(fragShader);
     glDeleteShader(blueFragShader);
 
-    /*Index buffer
     glGenBuffers(1, &indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    */
+    
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -220,9 +218,7 @@ int main(void)
         glBindVertexArray(vaos[0]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-        glUseProgram(shaderProgramTwo);
-        glBindVertexArray(vaos[1]);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+       
        
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
