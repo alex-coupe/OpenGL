@@ -214,7 +214,11 @@ int main(void)
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+        float time = glfwGetTime();
+        float green = (sin(time) / 2) + 0.5f;
+        int vertexColourLocation = glGetUniformLocation(shaderProgram, "myColor");
         glUseProgram(shaderProgram);
+        glUniform4f(vertexColourLocation, 0.0f, green, 0.0f, 1.0f);
         glBindVertexArray(vaos[0]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
