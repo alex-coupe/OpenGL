@@ -8,7 +8,7 @@
 #include "ShaderProgram.h"
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
-
+#include "ConstantBuffer.h"
 
 struct Vertex {
     struct {
@@ -101,6 +101,10 @@ int main(void)
     fragShader.DeleteShader();
   
     program.UseProgram();
+
+    float offset = 0.5f;
+    ConstantBuffer cbuff(program.GetId(), "xOffset");
+    cbuff.SetVec1f(offset);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))

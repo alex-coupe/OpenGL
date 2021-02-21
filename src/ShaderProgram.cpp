@@ -20,3 +20,8 @@ const void ShaderProgram::UseProgram()
 {
 	glUseProgram(m_Id);
 }
+
+const unsigned int ShaderProgram::GetId() const
+{
+    return m_Id;
+}
