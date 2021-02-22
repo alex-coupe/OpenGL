@@ -118,6 +118,11 @@ int main(void)
 
     cbuff2.SetUniform1i(1);
 
+    ConstantBuffer cbuff3(program.GetId(), "mixValue");
+
+    float mixValue = 0.5f;
+   
+
     
     Renderer renderer;
     /* Loop until the user closes the window */
@@ -131,12 +136,13 @@ int main(void)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         {
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+            ImGui::Begin("Hello, world!");       
+            ImGui::SliderFloat("Transparency", &mixValue, 0.0f, 1.0f);
             ImGui::End();
         }
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
+        cbuff3.SetUniform1f(mixValue);
         renderer.Draw(indexBuffer);
        
         /* Swap front and back buffers */
