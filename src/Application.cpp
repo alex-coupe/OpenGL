@@ -11,24 +11,27 @@
 #include "ConstantBuffer.h"
 #include "VertexArray.h"
 #include "Renderer.h"
+#include "Surface.h"
 
 struct Vertex {
     struct {
         float x, y, z;
     } position;
     struct {
-        float r, g, b;
-    } color;
+        float u,v;
+    } tex;
 };
 
 const std::vector<Vertex> triangle = {
-    {-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f},
-    {0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f},
-    {0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f }
+    {-0.5f, -0.5f, 0.0f, 0.0f, 0.0f},
+    {0.5f, -0.5f, 0.0f, 1.0f, 0.0f},
+    {0.5f, 0.5f, 0.0f, 1.0f, 1.0f },
+    {-0.5f, 0.5f,0.0f, 0.0f, 1.0f}
 };
 
 const unsigned short indices[] = {
-    0,1,2
+    0,1,2,
+    0,2,3
 };
 
 #define VERTEX_SHADER 1
@@ -87,10 +90,10 @@ int main(void)
     VertexBuffer vertexBuffer;
     vertexBuffer.Bind(triangle, GL_STATIC_DRAW);
 
-    IndexBuffer indexBuffer(indices, 3);
+    IndexBuffer indexBuffer(indices, 6);
     
-    vertexArray.AddLayout(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    vertexArray.AddLayout(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    vertexArray.AddLayout(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    vertexArray.AddLayout(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     vertexArray.EnableLayout(0);
     vertexArray.EnableLayout(1);
     
@@ -105,7 +108,15 @@ int main(void)
   
     program.UseProgram();
 
+    Surface texture1("resources/textures/container.jpg");
+    //Surface texture2()
+
     Renderer renderer;
+
+    ConstantBuffer cbuff(program.GetId(), "u_Texture");
+
+    cbuff.SetUniform1i(0);
+
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
