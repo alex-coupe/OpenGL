@@ -47,7 +47,7 @@ const unsigned int Shader::GetId() const
 
 void Shader::DeleteShader()
 {
-    glDeleteShader(m_Id);
+    GLCatchError(glDeleteShader(m_Id));
 }
 
 void Shader::ParseShader(const std::string& path)

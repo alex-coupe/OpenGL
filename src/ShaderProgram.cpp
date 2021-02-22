@@ -3,8 +3,8 @@
 ShaderProgram::ShaderProgram(const unsigned int vertexShader, const unsigned int fragmentShader)
 {
 	m_Id = glCreateProgram();
-	glAttachShader(m_Id, vertexShader);
-	glAttachShader(m_Id, fragmentShader);
+    GLCatchError(glAttachShader(m_Id, vertexShader));
+    GLCatchError(glAttachShader(m_Id, fragmentShader));
     glLinkProgram(m_Id);
     int success;
     char infoLog[512];
@@ -18,10 +18,15 @@ ShaderProgram::ShaderProgram(const unsigned int vertexShader, const unsigned int
 
 const void ShaderProgram::UseProgram()
 {
-	glUseProgram(m_Id);
+    GLCatchError(glUseProgram(m_Id));
 }
 
 const unsigned int ShaderProgram::GetId() const
 {
     return m_Id;
+}
+
+const void ShaderProgram::DeleteProgram()
+{
+    GLCatchError(glDeleteProgram(m_Id));
 }

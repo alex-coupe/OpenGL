@@ -133,7 +133,7 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
-
+    program.DeleteProgram();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();

@@ -1,6 +1,5 @@
 #pragma once
-#include "GL\glew.h"
-#include "spdlog\spdlog.h"
+#include "Logger.h"
 
 class ConstantBuffer {
 public:
@@ -11,17 +10,22 @@ public:
 
 	void SetVec4f(float x, float y, float z, float w)
 	{
-		glUniform4f(m_Id, x, y, z, w);
+		GLCatchError(glUniform4f(m_Id, x, y, z, w));
 	}
 
 	void SetVec3f(float x, float y, float z)
 	{
-		glUniform3f(m_Id, x, y, z);
+		GLCatchError(glUniform3f(m_Id, x, y, z));
+	}
+
+	void SetVec2f(float x, float y)
+	{
+		GLCatchError(glUniform2f(m_Id, x, y));
 	}
 
 	void SetVec1f(float x)
 	{
-		glUniform1f(m_Id, x);
+		GLCatchError(glUniform1f(m_Id, x));
 	}
 
 private:
