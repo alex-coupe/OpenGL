@@ -109,15 +109,17 @@ int main(void)
     program.UseProgram();
 
     Surface texture1("resources/textures/container.jpg");
-    //Surface texture2()
 
+    ConstantBuffer cbuff(program.GetId(), "texture1");
+
+    Surface texture2("resources/textures/awesomeface.png", 1);
+
+    ConstantBuffer cbuff2(program.GetId(), "texture2");
+
+    cbuff2.SetUniform1i(1);
+
+    
     Renderer renderer;
-
-    ConstantBuffer cbuff(program.GetId(), "u_Texture");
-
-    cbuff.SetUniform1i(0);
-
-
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -137,7 +139,6 @@ int main(void)
 
         renderer.Draw(indexBuffer);
        
-                   
         /* Swap front and back buffers */
         renderer.EndFrame(window);
 

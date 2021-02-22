@@ -13,7 +13,7 @@ public:
 		m_Data(nullptr), m_Width(0), m_Height(0), m_Colors(0)
 	{
 		stbi_set_flip_vertically_on_load(true);
-		m_Data = stbi_load(imagePath.c_str(), &m_Width, &m_Height, &m_Colors, 3);
+		m_Data = stbi_load(imagePath.c_str(), &m_Width, &m_Height, &m_Colors, 4);
 		GLCatchError(glGenTextures(1, &m_Id));
 
 		GLCatchError(glActiveTexture(GL_TEXTURE0 + slot));
@@ -25,7 +25,7 @@ public:
 		GLCatchError(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
 		
-		GLCatchError(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, m_Data));
+		GLCatchError(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_Data));
 	
 			
 		if (m_Data)
@@ -33,8 +33,9 @@ public:
 			stbi_image_free(m_Data);
 		}
 		else
-			spdlog::warn("Failed to load textured");
+			spdlog::warn("Failed to load texture");
 	}
+
 
 	~Surface()
 	{

@@ -12,6 +12,10 @@ public:
 	{
 		GLCatchError(glGenVertexArrays(1, &m_Id));
 	}
+	~VertexArray()
+	{
+		glDeleteVertexArrays(1, &m_Id);
+	}
 
 	void AddLayout(unsigned int index, GLint size, GLenum type, GLenum normalized, GLsizei stride, const void* offset)
 	{
