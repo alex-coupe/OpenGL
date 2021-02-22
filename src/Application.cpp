@@ -10,6 +10,7 @@
 #include "VertexBuffer.h"
 #include "ConstantBuffer.h"
 #include "VertexArray.h"
+#include "Renderer.h"
 
 struct Vertex {
     struct {
@@ -24,6 +25,10 @@ const std::vector<Vertex> triangle = {
     {-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f},
     {0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f},
     {0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f }
+};
+
+const unsigned short indices[] = {
+    0,1,2
 };
 
 #define VERTEX_SHADER 1
@@ -78,14 +83,17 @@ int main(void)
       
     VertexArray vertexArray;
     vertexArray.Bind();
-    VertexBuffer vertexBuffer(triangle, GL_STATIC_DRAW);
 
+    VertexBuffer vertexBuffer;
+    vertexBuffer.Bind(triangle, GL_STATIC_DRAW);
+
+    IndexBuffer indexBuffer(indices, 3);
+    
     vertexArray.AddLayout(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     vertexArray.AddLayout(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     vertexArray.EnableLayout(0);
     vertexArray.EnableLayout(1);
     
-      
     //Shaders
     Shader vertexShader("resources/shaders/default_vertex.glsl", VERTEX_SHADER);
     Shader fragShader ("resources/shaders/default_fragment.glsl", FRAGMENT_SHADER);
@@ -97,11 +105,14 @@ int main(void)
   
     program.UseProgram();
 
+    Renderer renderer;
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+     
+        renderer.BeginFrame();
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -113,12 +124,11 @@ int main(void)
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-      
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-                   
+        renderer.Draw(indexBuffer);
        
+                   
         /* Swap front and back buffers */
-        glfwSwapBuffers(window);
+        renderer.EndFrame(window);
 
         /* Poll for and process events */
         glfwPollEvents();
