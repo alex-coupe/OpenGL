@@ -9,6 +9,7 @@
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
 #include "ConstantBuffer.h"
+#include "VertexArray.h"
 
 struct Vertex {
     struct {
@@ -67,30 +68,24 @@ int main(void)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
+
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
+
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
       
-    unsigned int vao;
-
-    //vertex buffer and vertex array object
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
+    VertexArray vertexArray;
+    vertexArray.Bind();
     VertexBuffer vertexBuffer(triangle, GL_STATIC_DRAW);
-       
-    //bind vertex buffer to vao by specifying layout
-    //position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
 
-    //color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-   
+    vertexArray.AddLayout(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    vertexArray.AddLayout(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    vertexArray.EnableLayout(0);
+    vertexArray.EnableLayout(1);
+    
+      
     //Shaders
     Shader vertexShader("resources/shaders/default_vertex.glsl", VERTEX_SHADER);
     Shader fragShader ("resources/shaders/default_fragment.glsl", FRAGMENT_SHADER);
@@ -101,10 +96,6 @@ int main(void)
     fragShader.DeleteShader();
   
     program.UseProgram();
-
-    float offset = 0.5f;
-    ConstantBuffer cbuff(program.GetId(), "xOffset");
-    cbuff.SetVec1f(offset);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -123,7 +114,6 @@ int main(void)
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
       
-        glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
                    
        
@@ -133,6 +123,7 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
+    vertexArray.Unbind();
     program.DeleteProgram();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
