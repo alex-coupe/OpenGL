@@ -24,9 +24,9 @@ struct Vertex {
 
 const std::vector<Vertex> triangle = {
     {-0.5f, -0.5f, 0.0f, 0.0f, 0.0f},
-    {0.5f, -0.5f, 0.0f, 2.0f, 0.0f},
-    {0.5f, 0.5f, 0.0f, 2.0f, 2.0f },
-    {-0.5f, 0.5f,0.0f, 0.0f, 2.0f}
+    {0.5f, -0.5f, 0.0f, 1.0f, 0.0f},
+    {0.5f, 0.5f, 0.0f, 1.0f, 1.0f },
+    {-0.5f, 0.5f,0.0f, 0.0f, 1.0f}
 };
 
 const unsigned short indices[] = {
@@ -120,10 +120,8 @@ int main(void)
 
     ConstantBuffer cbuff3(program.GetId(), "mixValue");
 
-    float mixValue = 0.5f;
-   
-
-    
+    float blend = 0.5f;
+       
     Renderer renderer;
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -137,12 +135,12 @@ int main(void)
         ImGui::NewFrame();
         {
             ImGui::Begin("Hello, world!");       
-            ImGui::SliderFloat("Transparency", &mixValue, 0.0f, 1.0f);
+            ImGui::SliderFloat("Blend", &blend, 0.0f, 1.0f);
             ImGui::End();
         }
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        cbuff3.SetUniform1f(mixValue);
+        cbuff3.SetUniform1f(blend);
         renderer.Draw(indexBuffer);
        
         /* Swap front and back buffers */
