@@ -24,9 +24,9 @@ struct Vertex {
 
 const std::vector<Vertex> triangle = {
     {-0.5f, -0.5f, 0.0f, 0.0f, 0.0f},
-    {0.5f, -0.5f, 0.0f, 1.0f, 0.0f},
-    {0.5f, 0.5f, 0.0f, 1.0f, 1.0f },
-    {-0.5f, 0.5f,0.0f, 0.0f, 1.0f}
+    {0.5f, -0.5f, 0.0f, 2.0f, 0.0f},
+    {0.5f, 0.5f, 0.0f, 2.0f, 2.0f },
+    {-0.5f, 0.5f,0.0f, 0.0f, 2.0f}
 };
 
 const unsigned short indices[] = {
