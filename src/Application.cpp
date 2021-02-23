@@ -170,7 +170,13 @@ int main(void)
         glm::vec3(0.0f,  0.0f,  0.0f),
         glm::vec3(2.0f,  5.0f, -15.0f),
         glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f)
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f,  2.0f, -2.5f),
+        glm::vec3(1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
     struct Model {
@@ -184,7 +190,14 @@ int main(void)
     Model cube1;
     Model cube2;
     Model cube3;
-
+    Model cube4;
+    Model cube5;
+    Model cube6;
+    Model cube7;
+    Model cube8;
+    Model cube9;
+    Model cube10;
+    
     cube1.name = "cube 1";
     cube1.translateX = cubePositions[0].x;
     cube1.translateY = cubePositions[0].y;
@@ -200,20 +213,59 @@ int main(void)
     cube3.translateY = cubePositions[2].y;
     cube3.translateZ = cubePositions[2].z;
 
+    cube4.name = "cube 4";
+    cube4.translateX = cubePositions[3].x;
+    cube4.translateY = cubePositions[3].y;
+    cube4.translateZ = cubePositions[3].z;
+
+    cube5.name = "cube 5";
+    cube5.translateX = cubePositions[4].x;
+    cube5.translateY = cubePositions[4].y;
+    cube5.translateZ = cubePositions[4].z;
+
+    cube6.name = "cube 6";
+    cube6.translateX = cubePositions[5].x;
+    cube6.translateY = cubePositions[5].y;
+    cube6.translateZ = cubePositions[5].z;
+    
+    cube7.name = "cube 7";
+    cube7.translateX = cubePositions[6].x;
+    cube7.translateY = cubePositions[6].y;
+    cube7.translateZ = cubePositions[6].z;
+
+    cube8.name = "cube 8";
+    cube8.translateX = cubePositions[7].x;
+    cube8.translateY = cubePositions[7].y;
+    cube8.translateZ = cubePositions[7].z;
+
+    cube9.name = "cube 9";
+    cube9.translateX = cubePositions[8].x;
+    cube9.translateY = cubePositions[8].y;
+    cube9.translateZ = cubePositions[8].z;
+
+    cube10.name = "cube 10";
+    cube10.translateX = cubePositions[9].x;
+    cube10.translateY = cubePositions[9].y;
+    cube10.translateZ = cubePositions[9].z;
 
     Cubes.push_back(cube1);
     Cubes.push_back(cube2);
     Cubes.push_back(cube3);
+    Cubes.push_back(cube4);
+    Cubes.push_back(cube5);
+    Cubes.push_back(cube6);
+    Cubes.push_back(cube7);
+    Cubes.push_back(cube8);
+    Cubes.push_back(cube9);
+    Cubes.push_back(cube10);
     
     float projFOV = 45.0f, projNearPlane = 0.1f, projFarPlane = 100.0f;
-    float viewRotZ = 0.0f, viewRotX = 0.0f, viewRotY = 0.0f, viewScaleX = 1.0f, viewScaleY = 1.0f, viewScaleZ = 1.0f,
-        viewTranslateX = 0.0f, viewTranslateY = 0.0f, viewTranslateZ = -3.0f;
+    float viewRotZ = 0.0f, viewRotX = 0.0f, viewRotY = 0.0f, viewScale = 1.0f, viewTranslateX = 0.0f, viewTranslateY = 0.0f, viewTranslateZ = -3.0f;
        
     Renderer renderer(true);
 
     glm::mat4 identity = glm::mat4(1.0f);
 
-   
     ConstantBuffer modelMatrix(program.GetId(), "model");
     ConstantBuffer viewMatrix(program.GetId(), "view");
     ConstantBuffer projectionMatrix(program.GetId(), "projection");
@@ -248,12 +300,11 @@ int main(void)
             ImGui::SliderFloat("Rotate X", &viewRotX, -360.0f, 360.0f);
             ImGui::SliderFloat("Rotate Y", &viewRotY, -360.0f, 360.0f);
             ImGui::SliderFloat("Rotate Z", &viewRotZ, -360.0f, 360.0f);
-            ImGui::SliderFloat("Scale X", &viewScaleX, -5.0f, 5.0f);
-            ImGui::SliderFloat("Scale Y", &viewScaleY, -5.0f, 5.0f);
-            ImGui::SliderFloat("Scale Z", &viewScaleZ, -5.0f, 5.0f);
+            ImGui::SliderFloat("Scale ", &viewScale, 0.0f, 10.0f);
+            
             ImGui::SliderFloat("Translate X", &viewTranslateX, -1.0f, 1.0f);
             ImGui::SliderFloat("Translate Y", &viewTranslateY, -1.0f, 1.0f);
-            ImGui::SliderFloat("Translate Z", &viewTranslateZ, -5.0f, 5.0f);
+            ImGui::SliderFloat("Translate Z", &viewTranslateZ, -50.0f, 50.0f);
             ImGui::End();
 
             ImGui::Begin("Projection");
@@ -270,19 +321,27 @@ int main(void)
         view = glm::rotate(view, glm::radians(viewRotX), glm::vec3(1.0f, 0.0f, 0.0f));
         view = glm::rotate(view, glm::radians(viewRotY), glm::vec3(0.0f, 1.0f, 0.0f));
         view = glm::rotate(view, glm::radians(viewRotZ), glm::vec3(0.0f, 0.0f, 1.0f));
-        view = glm::scale(view, glm::vec3(viewScaleX, viewScaleY, viewScaleZ));
+        view = glm::scale(view, glm::vec3(viewScale, viewScale, viewScale));
 
         glm::mat4 projection = glm::perspective(glm::radians(projFOV), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
         
        
         viewMatrix.SetUniformMatrix4fv(view);
         projectionMatrix.SetUniformMatrix4fv(projection);
-        for (const auto& c : Cubes)
+        for (uint32_t index = 0; index < Cubes.size(); index++)
         {
+            const auto& c = Cubes.at(index);
+           
             glm::mat4 model = glm::translate(identity, glm::vec3(c.translateX, c.translateY, c.translateZ));
             model = glm::rotate(model, glm::radians(c.rotX), glm::vec3(1.0f, 0.0f, 0.0f));
             model = glm::rotate(model, glm::radians(c.rotY), glm::vec3(0.0f, 1.0f, 0.0f));
             model = glm::rotate(model, glm::radians(c.rotZ), glm::vec3(0.0f, 0.0f, 1.0f));
+            if (index % 2 != 0)
+            {
+                float angle = 20.0f * index;
+                angle = (float)glfwGetTime() * 25.0f;
+                model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            }
             model = glm::scale(model, glm::vec3(c.scaleX, c.scaleY, c.scaleZ));
             modelMatrix.SetUniformMatrix4fv(model);
             renderer.Draw(indexBuffer);
