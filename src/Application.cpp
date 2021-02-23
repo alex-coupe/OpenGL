@@ -26,16 +26,65 @@ struct Vertex {
     } tex;
 };
 
+//not able to share vertices due to texture mapping
 const std::vector<Vertex> triangle = {
-    {-0.5f, -0.5f, 0.0f, 0.0f, 0.0f},
-    {0.5f, -0.5f, 0.0f, 1.0f, 0.0f},
-    {0.5f, 0.5f, 0.0f, 1.0f, 1.0f },
-    {-0.5f, 0.5f,0.0f, 0.0f, 1.0f}
+
+    //front
+    {-0.5f, -0.5f, 0.0f, 0.0f, 0.0f}, //bottom left
+    {0.5f, -0.5f, 0.0f, 1.0f, 0.0f}, //bottom right
+    {0.5f, 0.5f, 0.0f, 1.0f, 1.0f }, //top right
+    {-0.5f, 0.5f,0.0f, 0.0f, 1.0f}, //top left
+
+    //back
+    {-0.5f, -0.5f, 1.0f, 0.0f, 0.0f}, //bottom left
+    {0.5f, -0.5f, 1.0f, 1.0f, 0.0f}, //bottom right
+    {0.5f, 0.5f, 1.0f, 1.0f, 1.0f }, //top right
+    {-0.5f, 0.5f,1.0f, 0.0f, 1.0f}, //top left
+
+    //right
+    {0.5f, -0.5f, 0.0f, 0.0f, 0.0f}, //bottom left
+    {0.5f, -0.5f, 1.0f, 1.0f, 0.0f}, //bottom right
+    {0.5f, 0.5f, 1.0f, 1.0f, 1.0f }, //top right
+    {0.5f, 0.5f, 0.0f, 0.0f, 1.0f }, //top left
+
+    //left
+    {-0.5f, -0.5f, 1.0f, 0.0f, 0.0f}, //bottom left
+    {-0.5f, -0.5f, 0.0f, 1.0f, 0.0f}, //bottom right
+    {-0.5f, 0.5f,0.0f, 1.0f, 1.0f}, //top right
+    {-0.5f, 0.5f,1.0f, 0.0f, 1.0f}, //top left
+
+    //top
+    {-0.5f, 0.5f,0.0f, 0.0f, 0.0f}, //bottom left
+    {0.5f, 0.5f, 0.0f, 1.0f, 0.0f }, //bottom right
+    {0.5f, 0.5f, 1.0f, 1.0f, 1.0f }, //top right
+    {-0.5f, 0.5f,1.0f, 0.0f, 1.0f}, //top left
+
+    //bottom
+     {-0.5f, -0.5f, 1.0f, 0.0f, 0.0f}, //bottom left
+    {0.5f, -0.5f, 1.0f, 1.0f, 0.0f}, //bottom right
+    {0.5f, -0.5f, 0.0f, 1.0f, 1.0f}, //top right
+     {-0.5f, -0.5f, 0.0f, 0.0f, 1.0f},  //top left
 };
 
 const unsigned short indices[] = {
+    //front face
     0,1,2,
-    0,2,3
+    0,2,3,
+    //back face
+    4,5,6,
+    4,6,7,
+    //right face
+    8,9,10,
+    8,10,11,
+    //left face
+    12,13,14,
+    12,14,15,
+    //top
+    16,17,18,
+    16,18,19,
+    //bottom
+    20,21,22,
+    20,22,23
 };
 
 #define VERTEX_SHADER 1
@@ -95,7 +144,7 @@ int main(void)
     VertexBuffer vertexBuffer;
     vertexBuffer.Bind(triangle, GL_STATIC_DRAW);
 
-    IndexBuffer indexBuffer(indices, 6);
+    IndexBuffer indexBuffer(indices, 36);
     
     vertexArray.AddLayout(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     vertexArray.AddLayout(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -117,25 +166,21 @@ int main(void)
 
     ConstantBuffer cbuff(program.GetId(), "texture1");
 
-    Surface texture2("resources/textures/awesomeface.png", 1);
-
-    ConstantBuffer cbuff2(program.GetId(), "texture2");
-
-    cbuff2.SetUniform1i(1);
-
-    ConstantBuffer cbuff3(program.GetId(), "mixValue");
-
-    float blend = 0.5f;
-
-    float rotZ = 0.0f;
-    float scaleX = 1.0f, scaleY = 1.0f, scaleZ = 1.0f;
-    float translateX = 0.0f, translateY = 0.0f, translateZ = 0.0f;
+    float modelRotZ = 0.0f, modelRotX = 0.0f, modelRotY = 0.0f, modelScaleX = 1.0f, modelScaleY = 1.0f, modelScaleZ = 1.0f, 
+        modelTranslateX = 0.0f, modelTranslateY = 0.0f, modelTranslateZ = 0.0f;
+    float projFOV = 45.0f, projNearPlane = 0.1f, projFarPlane = 100.0f;
+    float viewRotZ = 0.0f, viewRotX = 0.0f, viewRotY = 0.0f, viewScaleX = 1.0f, viewScaleY = 1.0f, viewScaleZ = 1.0f,
+        viewTranslateX = 0.0f, viewTranslateY = 0.0f, viewTranslateZ = -3.0f;
        
-    Renderer renderer;
+    Renderer renderer(true);
 
-    ConstantBuffer transformation(program.GetId(), "transform");
-    unsigned int transformLoc = glGetUniformLocation(program.GetId(), "transform");
-  
+    glm::mat4 identity = glm::mat4(1.0f);
+
+   
+    ConstantBuffer modelMatrix(program.GetId(), "model");
+    ConstantBuffer viewMatrix(program.GetId(), "view");
+    ConstantBuffer projectionMatrix(program.GetId(), "projection");
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -147,37 +192,58 @@ int main(void)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         {
-            ImGui::Begin("Hello, world!");       
-            ImGui::SliderFloat("Blend", &blend, 0.0f, 1.0f);
+       
+            ImGui::Begin("Model");
+            ImGui::SliderFloat("Rotate X", &modelRotX, -360.0f, 360.0f);
+            ImGui::SliderFloat("Rotate Y", &modelRotY, -360.0f, 360.0f);
+            ImGui::SliderFloat("Rotate Z", &modelRotZ, -360.0f, 360.0f);
+            ImGui::SliderFloat("Scale X", &modelScaleX, -5.0f, 5.0f);
+            ImGui::SliderFloat("Scale Y", &modelScaleY, -5.0f, 5.0f);
+            ImGui::SliderFloat("Scale Z", &modelScaleZ, -5.0f, 5.0f);
+            ImGui::SliderFloat("Translate X", &modelTranslateX, -1.0f, 1.0f);
+            ImGui::SliderFloat("Translate Y", &modelTranslateY, -1.0f, 1.0f);
+            ImGui::SliderFloat("Translate Z", &modelTranslateZ, -5.0f, 5.0f);
             ImGui::End();
 
-            ImGui::Begin("Rotation");
-            ImGui::SliderFloat("Rotate Z", &rotZ, 0.0f, 360.0f);
+            ImGui::Begin("View");
+            ImGui::SliderFloat("Rotate X", &viewRotX, -360.0f, 360.0f);
+            ImGui::SliderFloat("Rotate Y", &viewRotY, -360.0f, 360.0f);
+            ImGui::SliderFloat("Rotate Z", &viewRotZ, -360.0f, 360.0f);
+            ImGui::SliderFloat("Scale X", &viewScaleX, -5.0f, 5.0f);
+            ImGui::SliderFloat("Scale Y", &viewScaleY, -5.0f, 5.0f);
+            ImGui::SliderFloat("Scale Z", &viewScaleZ, -5.0f, 5.0f);
+            ImGui::SliderFloat("Translate X", &viewTranslateX, -1.0f, 1.0f);
+            ImGui::SliderFloat("Translate Y", &viewTranslateY, -1.0f, 1.0f);
+            ImGui::SliderFloat("Translate Z", &viewTranslateZ, -5.0f, 5.0f);
             ImGui::End();
 
-            ImGui::Begin("Scaling");
-            ImGui::SliderFloat("Scale X", &scaleX, -5.0f, 5.0f);
-            ImGui::SliderFloat("Scale Y", &scaleY, -5.0f, 5.0f);
-           // ImGui::SliderFloat("Scale Z", &scaleZ, -5.0f, 5.0f);
-            ImGui::End();
-
-            ImGui::Begin("Translation");
-            ImGui::SliderFloat("Translate X", &translateX, -1.0f, 1.0f);
-            ImGui::SliderFloat("Translate Y", &translateY, -1.0f, 1.0f);
-         //   ImGui::SliderFloat("Translate Z", &translateZ, -5.0f, 5.0f);
+            ImGui::Begin("Projection");
+            ImGui::SliderFloat("FOV", &projFOV, 0.0f, 100.0f);
+            ImGui::SliderFloat("Near Plane", &projNearPlane, 0.1f, 95.0f);
+            ImGui::SliderFloat("Far Plane", &projFarPlane, 0.5f, 100.0f);
             ImGui::End();
         }
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
        
-        //create a transformation matrix each frame and bind it to the pipeline as a shader uniform
-        glm::mat4 trans = glm::mat4(1.0f);
-        trans = glm::translate(trans, glm::vec3(translateX, translateY, translateZ));
-        trans = glm::scale(trans, glm::vec3(scaleX, scaleY, scaleZ));
-        trans = glm::rotate(trans, glm::radians(rotZ), glm::vec3(0.0, 0.0, 1.0));
-        cbuff3.SetUniform1f(blend);
-        transformation.SetUniformMatrix4fv(trans);
-       
+        glm::mat4 model = glm::translate(identity, glm::vec3(modelTranslateX, modelTranslateY, modelTranslateZ));
+        model = glm::rotate(model, glm::radians(modelRotX), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(modelRotY), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(modelRotZ), glm::vec3(0.0f, 0.0f, 1.0f));
+        model = glm::scale(model, glm::vec3(modelScaleX, modelScaleY, modelScaleZ));
+
+        glm::mat4 view = glm::translate(identity, glm::vec3(viewTranslateX, viewTranslateY, viewTranslateZ));
+        view = glm::rotate(view, glm::radians(viewRotX), glm::vec3(1.0f, 0.0f, 0.0f));
+        view = glm::rotate(view, glm::radians(viewRotY), glm::vec3(0.0f, 1.0f, 0.0f));
+        view = glm::rotate(view, glm::radians(viewRotZ), glm::vec3(0.0f, 0.0f, 1.0f));
+        view = glm::scale(view, glm::vec3(viewScaleX, viewScaleY, viewScaleZ));
+
+        glm::mat4 projection = glm::perspective(glm::radians(projFOV), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
+        
+        modelMatrix.SetUniformMatrix4fv(model);
+        viewMatrix.SetUniformMatrix4fv(view);
+        projectionMatrix.SetUniformMatrix4fv(projection);
+            
         renderer.Draw(indexBuffer);
        
         /* Swap front and back buffers */

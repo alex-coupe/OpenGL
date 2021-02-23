@@ -7,6 +7,7 @@
 
 class Renderer {
 public: 
+	Renderer(bool enableDepth);
 	void BeginFrame()const;
 	void Draw(const IndexBuffer& ib) const;
 	void Draw(GLint first, GLsizei count)const;

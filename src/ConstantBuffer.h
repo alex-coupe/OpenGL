@@ -10,7 +10,7 @@ public:
 		m_Id = glGetUniformLocation(programId, name.c_str());
 
 		if (m_Id == -1)
-			spdlog::warn("Uniform not found!");
+			spdlog::warn("Uniform not found! {}", name);
 	}
 
 	void SetUniform4f(float v0, float v1, float v2, float v3)
