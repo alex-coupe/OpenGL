@@ -1,9 +1,12 @@
 #include <GL\glew.h>
 #include <GLFW/glfw3.h>
 #include <spdlog\spdlog.h>
-#include "Imgui/imgui.h"
-#include "Imgui/imgui_impl_glfw.h"
-#include "Imgui/imgui_impl_opengl3.h"
+#include <Imgui/imgui.h>
+#include <Imgui/imgui_impl_glfw.h>
+#include <Imgui/imgui_impl_opengl3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "Shader.h"
 #include "ShaderProgram.h"
 #include "IndexBuffer.h"
@@ -12,6 +15,7 @@
 #include "VertexArray.h"
 #include "Renderer.h"
 #include "Surface.h"
+
 
 struct Vertex {
     struct {
@@ -44,6 +48,11 @@ int main(void)
 
     const char* glsl_version = "#version 330";
 
+    glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
+    glm::mat4 trans = glm::mat4(1.0f);
+    trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
+    vec = trans * vec;
+    spdlog::info("x {}, y {}, z {}",vec.x, vec.y, vec.z);
 
     /* Initialize the library */
     if (!glfwInit())
