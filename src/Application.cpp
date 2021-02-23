@@ -6,7 +6,7 @@
 #include <Imgui/imgui_impl_opengl3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+
 #include "Shader.h"
 #include "ShaderProgram.h"
 #include "IndexBuffer.h"
@@ -40,6 +40,8 @@ const unsigned short indices[] = {
 
 #define VERTEX_SHADER 1
 #define FRAGMENT_SHADER 2
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
 
 
 int main(void)
@@ -47,12 +49,6 @@ int main(void)
     GLFWwindow* window;
 
     const char* glsl_version = "#version 330";
-
-    glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
-    glm::mat4 trans = glm::mat4(1.0f);
-    trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
-    vec = trans * vec;
-    spdlog::info("x {}, y {}, z {}",vec.x, vec.y, vec.z);
 
     /* Initialize the library */
     if (!glfwInit())
@@ -63,7 +59,7 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(800, 600, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello World", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -130,8 +126,16 @@ int main(void)
     ConstantBuffer cbuff3(program.GetId(), "mixValue");
 
     float blend = 0.5f;
+
+    float rotZ = 0.0f;
+    float scaleX = 1.0f, scaleY = 1.0f, scaleZ = 1.0f;
+    float translateX = 0.0f, translateY = 0.0f, translateZ = 0.0f;
        
     Renderer renderer;
+
+    ConstantBuffer transformation(program.GetId(), "transform");
+    unsigned int transformLoc = glGetUniformLocation(program.GetId(), "transform");
+  
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -146,11 +150,45 @@ int main(void)
             ImGui::Begin("Hello, world!");       
             ImGui::SliderFloat("Blend", &blend, 0.0f, 1.0f);
             ImGui::End();
+
+            ImGui::Begin("Rotation");
+            ImGui::SliderFloat("Rotate Z", &rotZ, 0.0f, 360.0f);
+            ImGui::End();
+
+            ImGui::Begin("Scaling");
+            ImGui::SliderFloat("Scale X", &scaleX, -5.0f, 5.0f);
+            ImGui::SliderFloat("Scale Y", &scaleY, -5.0f, 5.0f);
+           // ImGui::SliderFloat("Scale Z", &scaleZ, -5.0f, 5.0f);
+            ImGui::End();
+
+            ImGui::Begin("Translation");
+            ImGui::SliderFloat("Translate X", &translateX, -1.0f, 1.0f);
+            ImGui::SliderFloat("Translate Y", &translateY, -1.0f, 1.0f);
+         //   ImGui::SliderFloat("Translate Z", &translateZ, -5.0f, 5.0f);
+            ImGui::End();
         }
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+       
+        //create a transformation matrix each frame and bind it to the pipeline as a shader uniform
+        glm::mat4 trans = glm::mat4(1.0f);
+        trans = glm::translate(trans, glm::vec3(translateX, translateY, translateZ));
+        trans = glm::scale(trans, glm::vec3(scaleX, scaleY, scaleZ));
+        trans = glm::rotate(trans, glm::radians(rotZ), glm::vec3(0.0, 0.0, 1.0));
         cbuff3.SetUniform1f(blend);
+        transformation.SetUniformMatrix4fv(trans);
+       
         renderer.Draw(indexBuffer);
+
+        trans = glm::mat4(1.0f); // reset it to identity matrix
+        trans = glm::translate(trans, glm::vec3(-0.5f, 0.5f, 0.0f));
+        float scaleAmount = sin(glfwGetTime());
+        trans = glm::scale(trans, glm::vec3(scaleAmount, scaleAmount, scaleAmount));
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &trans[0][0]); // this time take the matrix value array's first element as its memory pointer value
+
+        // now with the uniform matrix being replaced with new transformations, draw it again.
+        renderer.Draw(indexBuffer);
+
        
         /* Swap front and back buffers */
         renderer.EndFrame(window);

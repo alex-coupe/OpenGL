@@ -1,5 +1,6 @@
 #pragma once
 #include "Logger.h"
+#include <glm/gtc/type_ptr.hpp>
 
 class ConstantBuffer {
 public:
@@ -35,6 +36,11 @@ public:
 	void SetUniform1i(int v0)
 	{
 		GLCatchError(glUniform1i(glGetUniformLocation(m_ProgramId, m_Name.c_str()), v0));
+	}
+
+	void SetUniformMatrix4fv(glm::mat4 trans)
+	{
+		GLCatchError(glUniformMatrix4fv(glGetUniformLocation(m_ProgramId, m_Name.c_str()), 1, GL_FALSE, glm::value_ptr(trans)));
 	}
 
 private:
