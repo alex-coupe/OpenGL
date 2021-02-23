@@ -179,16 +179,6 @@ int main(void)
         transformation.SetUniformMatrix4fv(trans);
        
         renderer.Draw(indexBuffer);
-
-        trans = glm::mat4(1.0f); // reset it to identity matrix
-        trans = glm::translate(trans, glm::vec3(-0.5f, 0.5f, 0.0f));
-        float scaleAmount = sin(glfwGetTime());
-        trans = glm::scale(trans, glm::vec3(scaleAmount, scaleAmount, scaleAmount));
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &trans[0][0]); // this time take the matrix value array's first element as its memory pointer value
-
-        // now with the uniform matrix being replaced with new transformations, draw it again.
-        renderer.Draw(indexBuffer);
-
        
         /* Swap front and back buffers */
         renderer.EndFrame(window);
