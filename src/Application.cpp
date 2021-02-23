@@ -89,8 +89,8 @@ const unsigned short indices[] = {
 
 #define VERTEX_SHADER 1
 #define FRAGMENT_SHADER 2
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 600
+#define SCREEN_WIDTH 1600
+#define SCREEN_HEIGHT 1000
 
 
 int main(void)
@@ -166,8 +166,45 @@ int main(void)
 
     ConstantBuffer cbuff(program.GetId(), "texture1");
 
-    float modelRotZ = 0.0f, modelRotX = 0.0f, modelRotY = 0.0f, modelScaleX = 1.0f, modelScaleY = 1.0f, modelScaleZ = 1.0f, 
-        modelTranslateX = 0.0f, modelTranslateY = 0.0f, modelTranslateZ = 0.0f;
+    glm::vec3 cubePositions[] = {
+        glm::vec3(0.0f,  0.0f,  0.0f),
+        glm::vec3(2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f)
+    };
+
+    struct Model {
+        float rotZ = 0.0f, rotX = 0.0f, rotY = 0.0f, scaleX = 1.0f, scaleY = 1.0f, scaleZ = 1.0f,
+            translateX = 0.0f, translateY = 0.0f, translateZ = 0.0f;
+        std::string name;
+    };
+
+    std::vector<Model> Cubes;
+
+    Model cube1;
+    Model cube2;
+    Model cube3;
+
+    cube1.name = "cube 1";
+    cube1.translateX = cubePositions[0].x;
+    cube1.translateY = cubePositions[0].y;
+    cube1.translateZ = cubePositions[0].z;
+
+    cube2.name = "cube 2";
+    cube2.translateX = cubePositions[1].x;
+    cube2.translateY = cubePositions[1].y;
+    cube2.translateZ = cubePositions[1].z;
+
+    cube3.name = "cube 3";
+    cube3.translateX = cubePositions[2].x;
+    cube3.translateY = cubePositions[2].y;
+    cube3.translateZ = cubePositions[2].z;
+
+
+    Cubes.push_back(cube1);
+    Cubes.push_back(cube2);
+    Cubes.push_back(cube3);
+    
     float projFOV = 45.0f, projNearPlane = 0.1f, projFarPlane = 100.0f;
     float viewRotZ = 0.0f, viewRotX = 0.0f, viewRotY = 0.0f, viewScaleX = 1.0f, viewScaleY = 1.0f, viewScaleZ = 1.0f,
         viewTranslateX = 0.0f, viewTranslateY = 0.0f, viewTranslateZ = -3.0f;
@@ -192,18 +229,20 @@ int main(void)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         {
-       
-            ImGui::Begin("Model");
-            ImGui::SliderFloat("Rotate X", &modelRotX, -360.0f, 360.0f);
-            ImGui::SliderFloat("Rotate Y", &modelRotY, -360.0f, 360.0f);
-            ImGui::SliderFloat("Rotate Z", &modelRotZ, -360.0f, 360.0f);
-            ImGui::SliderFloat("Scale X", &modelScaleX, -5.0f, 5.0f);
-            ImGui::SliderFloat("Scale Y", &modelScaleY, -5.0f, 5.0f);
-            ImGui::SliderFloat("Scale Z", &modelScaleZ, -5.0f, 5.0f);
-            ImGui::SliderFloat("Translate X", &modelTranslateX, -1.0f, 1.0f);
-            ImGui::SliderFloat("Translate Y", &modelTranslateY, -1.0f, 1.0f);
-            ImGui::SliderFloat("Translate Z", &modelTranslateZ, -5.0f, 5.0f);
-            ImGui::End();
+            for(auto& c : Cubes)
+            {
+                ImGui::Begin(c.name.c_str());
+                ImGui::SliderFloat("Rotate X", &c.rotX, -360.0f, 360.0f);
+                ImGui::SliderFloat("Rotate Y", &c.rotY, -360.0f, 360.0f);
+                ImGui::SliderFloat("Rotate Z", &c.rotZ, -360.0f, 360.0f);
+                ImGui::SliderFloat("Scale X", &c.scaleX, -5.0f, 5.0f);
+                ImGui::SliderFloat("Scale Y", &c.scaleY, -5.0f, 5.0f);
+                ImGui::SliderFloat("Scale Z", &c.scaleZ, -5.0f, 5.0f);
+                ImGui::SliderFloat("Translate X", &c.translateX, -1.0f, 1.0f);
+                ImGui::SliderFloat("Translate Y", &c.translateY, -1.0f, 1.0f);
+                ImGui::SliderFloat("Translate Z", &c.translateZ, -5.0f, 5.0f);
+                ImGui::End();
+            }
 
             ImGui::Begin("View");
             ImGui::SliderFloat("Rotate X", &viewRotX, -360.0f, 360.0f);
@@ -226,12 +265,7 @@ int main(void)
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
        
-        glm::mat4 model = glm::translate(identity, glm::vec3(modelTranslateX, modelTranslateY, modelTranslateZ));
-        model = glm::rotate(model, glm::radians(modelRotX), glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(modelRotY), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(modelRotZ), glm::vec3(0.0f, 0.0f, 1.0f));
-        model = glm::scale(model, glm::vec3(modelScaleX, modelScaleY, modelScaleZ));
-
+      
         glm::mat4 view = glm::translate(identity, glm::vec3(viewTranslateX, viewTranslateY, viewTranslateZ));
         view = glm::rotate(view, glm::radians(viewRotX), glm::vec3(1.0f, 0.0f, 0.0f));
         view = glm::rotate(view, glm::radians(viewRotY), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -240,12 +274,20 @@ int main(void)
 
         glm::mat4 projection = glm::perspective(glm::radians(projFOV), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
         
-        modelMatrix.SetUniformMatrix4fv(model);
+       
         viewMatrix.SetUniformMatrix4fv(view);
         projectionMatrix.SetUniformMatrix4fv(projection);
-            
-        renderer.Draw(indexBuffer);
-       
+        for (const auto& c : Cubes)
+        {
+            glm::mat4 model = glm::translate(identity, glm::vec3(c.translateX, c.translateY, c.translateZ));
+            model = glm::rotate(model, glm::radians(c.rotX), glm::vec3(1.0f, 0.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(c.rotY), glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(c.rotZ), glm::vec3(0.0f, 0.0f, 1.0f));
+            model = glm::scale(model, glm::vec3(c.scaleX, c.scaleY, c.scaleZ));
+            modelMatrix.SetUniformMatrix4fv(model);
+            renderer.Draw(indexBuffer);
+        }
+        
         /* Swap front and back buffers */
         renderer.EndFrame(window);
 
