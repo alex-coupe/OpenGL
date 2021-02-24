@@ -91,6 +91,7 @@ const unsigned short indices[] = {
 #define FRAGMENT_SHADER 2
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 1000
+#define ENABLE_DEPTH_TEST true
 
 
 int main(void)
@@ -162,7 +163,7 @@ int main(void)
   
     program.UseProgram();
 
-    Surface texture1("resources/textures/container.jpg");
+    Surface texture1("resources/textures/awesomeface.png");
 
     ConstantBuffer cbuff(program.GetId(), "texture1");
 
@@ -262,7 +263,9 @@ int main(void)
     float projFOV = 45.0f, projNearPlane = 0.1f, projFarPlane = 100.0f;
     float viewRotZ = 0.0f, viewRotX = 0.0f, viewRotY = 0.0f, viewScale = 1.0f, viewTranslateX = 0.0f, viewTranslateY = 0.0f, viewTranslateZ = -3.0f;
        
-    Renderer renderer(true);
+    Renderer renderer(ENABLE_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glm::mat4 identity = glm::mat4(1.0f);
 
