@@ -30,6 +30,8 @@ struct Vertex {
 };
 
 void processInput(GLFWwindow* window);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 //not able to share vertices due to texture mapping
 const std::vector<Vertex> triangle = {
@@ -96,7 +98,7 @@ const unsigned short indices[] = {
 #define FRAGMENT_SHADER 2
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 1000
-#define ENABLE_DEPTH_TEST true
+#define ENABLE_DEPTH_TEST 0x000001
 
 
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
@@ -106,6 +108,15 @@ glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
+
+float lastX = (float)SCREEN_WIDTH/2, lastY = (float)SCREEN_HEIGHT/2;
+
+float projFOV = 45.0f, projNearPlane = 0.1f, projFarPlane = 100.0f;
+bool firstMouse = true;
+float yaw = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
+float pitch = 0.0f;
+
+bool rawMouse = true;
 
 int main(void)
 {
@@ -131,6 +142,10 @@ int main(void)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     GLenum err = glewInit();
 
@@ -225,9 +240,6 @@ int main(void)
     Cubes.push_back(cube1);
     Cubes.push_back(cube2);
     Cubes.push_back(cube3);
-
-
-    float projFOV = 45.0f, projNearPlane = 0.1f, projFarPlane = 100.0f;
 
     Renderer renderer(ENABLE_DEPTH_TEST);
     
@@ -329,13 +341,75 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+    {
+        if (rawMouse)
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            rawMouse = false;
+        }
+        else
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            rawMouse = true;
+        }
+    }
+
     float cameraSpeed = 2.5f * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         cameraPos += cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        cameraPos.y -= cameraSpeed * cameraFront.y;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         cameraPos -= cameraSpeed * cameraFront;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+}
+
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    projFOV -= (float)yoffset;
+    if (projFOV < 1.0f)
+        projFOV = 1.0f;
+    if (projFOV > 45.0f)
+        projFOV = 45.0f;
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (rawMouse)
+    {
+        if (firstMouse)
+        {
+            lastX = (float)xpos;
+            lastY = (float)ypos;
+            firstMouse = false;
+        }
+
+        float xoffset = (float)xpos - lastX;
+        float yoffset = lastY - (float)ypos;
+        lastX = (float)xpos;
+        lastY = (float)ypos;
+
+        float sensitivity = 0.1f;
+        xoffset *= sensitivity;
+        yoffset *= sensitivity;
+
+        yaw += xoffset;
+        pitch += yoffset;
+
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+        if (pitch < -89.0f)
+            pitch = -89.0f;
+
+        glm::vec3 direction;
+        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        direction.y = sin(glm::radians(pitch));
+        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        cameraFront = glm::normalize(direction);
+    }
 }
