@@ -26,7 +26,7 @@ struct Vertex {
     } tex;
 };
 
-
+void processInput(GLFWwindow* window);
 
 //not able to share vertices due to texture mapping
 const std::vector<Vertex> triangle = {
@@ -94,7 +94,15 @@ const unsigned short indices[] = {
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 1000
 #define ENABLE_DEPTH_TEST true
-using Vec3 = float[3];
+
+
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+// timing
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
 
 int main(void)
 {
@@ -218,10 +226,6 @@ int main(void)
 
     float projFOV = 45.0f, projNearPlane = 0.1f, projFarPlane = 100.0f;
 
-    glm::vec3 v_rotation = { 0.0f, 0.0f, 0.0f };
-    glm::vec3 v_scale = { 1.0f, 1.0f, 1.0f };
-    glm::vec3 v_translation = {0.0f, 0.0f, -5.0f};
-       
     Renderer renderer(ENABLE_DEPTH_TEST);
     
     glm::mat4 identity = glm::mat4(1.0f);
@@ -230,11 +234,18 @@ int main(void)
     ConstantBuffer viewMatrix(program.GetId(), "view");
     ConstantBuffer projectionMatrix(program.GetId(), "projection");
 
+   
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+      
+        processInput(window);
         /* Render here */
-     
+        
         renderer.BeginFrame();
 
         ImGui_ImplOpenGL3_NewFrame();
@@ -246,34 +257,28 @@ int main(void)
                 ImGui::Begin(c.name.c_str());
                 ImGui::SliderFloat3("Rotation", &c.rotation.x, -360.0f, 360.0f);
                 ImGui::SliderFloat3("Scale", &c.scale.x, -5.0f, 5.0f);
-                ImGui::SliderFloat3("Translation", &c.translation.z, -1.0f, 1.0f);
+                ImGui::SliderFloat3("Translation", &c.translation.x, -5.0f, 5.0f);
                
                 ImGui::End();
             }
 
-            ImGui::Begin("View");
-            ImGui::SliderFloat3("Rotate", &v_rotation.x, -360.0f, 360.0f);
-            ImGui::SliderFloat("Scale ", &v_scale.x, 0.0f, 10.0f);
-            ImGui::SliderFloat3("Translate", &v_translation.x, -50.0f, 50.0f);
+            ImGui::Begin("Debug");
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0 / float(ImGui::GetIO().Framerate), float(ImGui::GetIO().Framerate));
-            ImGui::End();
-
-            ImGui::Begin("Projection");
+            ImGui::SliderFloat3("Cam Pos", &cameraPos.x, -5.0f, 5.0f);
+            ImGui::SliderFloat3("Cam Front", &cameraFront.x, -1.0f, 1.0f);
             ImGui::SliderFloat("FOV", &projFOV, 0.0f, 100.0f);
             ImGui::SliderFloat("Near Plane", &projNearPlane, 0.1f, 95.0f);
             ImGui::SliderFloat("Far Plane", &projFarPlane, 0.5f, 100.0f);
             ImGui::End();
+
         }
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-       
+        
+        
+        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
       
-        glm::mat4 view = glm::translate(identity, v_translation);
-        view = glm::rotate(view, glm::radians(v_rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-        view = glm::rotate(view, glm::radians(v_rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-        view = glm::rotate(view, glm::radians(v_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-        view = glm::scale(view, glm::vec3(v_scale.x, v_scale.y, v_scale.z));
 
         glm::mat4 projection = glm::perspective(glm::radians(projFOV), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
         
@@ -314,4 +319,20 @@ int main(void)
     ImGui::DestroyContext();
     glfwTerminate();
     return 0;
+}
+
+void processInput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    float cameraSpeed = 2.5 * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
