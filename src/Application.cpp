@@ -1,3 +1,6 @@
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <GL\glew.h>
 #include <GLFW/glfw3.h>
 #include <spdlog\spdlog.h>
@@ -239,7 +242,7 @@ int main(void)
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
-        float currentFrame = glfwGetTime();
+        float currentFrame = (float)glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
       
@@ -326,7 +329,7 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    float cameraSpeed = 2.5 * deltaTime;
+    float cameraSpeed = 2.5f * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         cameraPos += cameraSpeed * cameraFront;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
