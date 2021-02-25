@@ -282,9 +282,9 @@ int main(void)
                 1000.0 / float(ImGui::GetIO().Framerate), float(ImGui::GetIO().Framerate));
             ImGui::SliderFloat3("Cam Pos", &cameraPos.x, -5.0f, 5.0f);
             ImGui::SliderFloat3("Cam Front", &cameraFront.x, -1.0f, 1.0f);
-            ImGui::SliderFloat("FOV", &projFOV, 0.0f, 100.0f);
-            ImGui::SliderFloat("Near Plane", &projNearPlane, 0.1f, 95.0f);
-            ImGui::SliderFloat("Far Plane", &projFarPlane, 0.5f, 100.0f);
+            ImGui::SliderFloat("FOV", &projFOV, 1.0f, 45.0f);
+            ImGui::SliderFloat("Pitch", &pitch, -90.0f, 90.0f);
+            ImGui::SliderFloat("Yaw", &yaw, -360.0f, 360.0f);
             ImGui::End();
 
         }
@@ -358,14 +358,16 @@ void processInput(GLFWwindow* window)
     float cameraSpeed = 2.5f * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         cameraPos += cameraSpeed * cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        cameraPos.y -= cameraSpeed * cameraFront.y;
+   
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         cameraPos -= cameraSpeed * cameraFront;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
+    cameraPos.y = 0.0f;
+
 }
 
 
