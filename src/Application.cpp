@@ -118,6 +118,8 @@ float pitch = 0.0f;
 
 bool rawMouse = true;
 
+glm::mat4 LookAt(glm::vec3 position, glm::vec3 target, glm::vec3 up);
+
 int main(void)
 {
     GLFWwindow* window;
@@ -292,8 +294,8 @@ int main(void)
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         
         
-        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-      
+      //  glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        glm::mat4 view = LookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
         glm::mat4 projection = glm::perspective(glm::radians(projFOV), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
         
@@ -379,6 +381,41 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     if (projFOV > 45.0f)
         projFOV = 45.0f;
 }
+
+glm::mat4 LookAt(glm::vec3 position, glm::vec3 target, glm::vec3 up)
+{
+    //get the camera direction by normalising the result of position vector - target
+    glm::vec3 direction = glm::normalize(position - target);
+
+    //right vector is cross product of up and direction
+    glm::vec3 cameraRight = glm::normalize(glm::cross(glm::normalize(up), direction));
+    glm::vec3 cameraUp = glm::cross(direction, cameraRight);
+
+    glm::mat4 translation = glm::mat4(1.0f);
+    glm::mat4 rotation = glm::mat4(1.0f);
+
+    translation[3][0] = -position.x;
+    translation[3][1] = -position.y;
+    translation[3][2] = -position.z;
+
+    rotation[0][0] = cameraRight.x; // First column, first row
+    rotation[1][0] = cameraRight.y;
+    rotation[2][0] = cameraRight.z;
+    rotation[0][1] = cameraUp.x; // First column, second row
+    rotation[1][1] = cameraUp.y;
+    rotation[2][1] = cameraUp.z;
+    rotation[0][2] = direction.x; // First column, third row
+    rotation[1][2] = direction.y;
+    rotation[2][2] = direction.z;
+
+  
+    
+    return rotation * translation;
+
+}
+
+
+
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
