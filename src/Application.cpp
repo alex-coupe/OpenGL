@@ -7,8 +7,6 @@
 #include <Imgui/imgui.h>
 #include <Imgui/imgui_impl_glfw.h>
 #include <Imgui/imgui_impl_opengl3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "Shader.h"
 #include "ShaderProgram.h"
@@ -18,6 +16,7 @@
 #include "VertexArray.h"
 #include "Renderer.h"
 #include "Surface.h"
+#include "Camera.h"
 
 
 struct Vertex {
@@ -100,25 +99,13 @@ const unsigned short indices[] = {
 #define SCREEN_HEIGHT 1000
 #define ENABLE_DEPTH_TEST 0x000001
 
-
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
-float lastX = (float)SCREEN_WIDTH/2, lastY = (float)SCREEN_HEIGHT/2;
+float projNearPlane = 0.1f, projFarPlane = 100.0f;
 
-float projFOV = 45.0f, projNearPlane = 0.1f, projFarPlane = 100.0f;
-bool firstMouse = true;
-float yaw = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
-float pitch = 0.0f;
-
-bool rawMouse = true;
-
-glm::mat4 LookAt(glm::vec3 position, glm::vec3 target, glm::vec3 up);
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), (float)SCREEN_WIDTH / 2, (float)SCREEN_HEIGHT / 2);
 
 int main(void)
 {
@@ -251,8 +238,6 @@ int main(void)
     ConstantBuffer viewMatrix(program.GetId(), "view");
     ConstantBuffer projectionMatrix(program.GetId(), "projection");
 
-   
-
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -282,11 +267,6 @@ int main(void)
             ImGui::Begin("Debug");
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0 / float(ImGui::GetIO().Framerate), float(ImGui::GetIO().Framerate));
-            ImGui::SliderFloat3("Cam Pos", &cameraPos.x, -5.0f, 5.0f);
-            ImGui::SliderFloat3("Cam Front", &cameraFront.x, -1.0f, 1.0f);
-            ImGui::SliderFloat("FOV", &projFOV, 1.0f, 45.0f);
-            ImGui::SliderFloat("Pitch", &pitch, -90.0f, 90.0f);
-            ImGui::SliderFloat("Yaw", &yaw, -360.0f, 360.0f);
             ImGui::End();
 
         }
@@ -294,10 +274,8 @@ int main(void)
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         
         
-      //  glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        glm::mat4 view = LookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
-        glm::mat4 projection = glm::perspective(glm::radians(projFOV), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
+        glm::mat4 view = camera.GetLookAt();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.GetFieldOfView()), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
         
        
         viewMatrix.SetUniformMatrix4fv(view);
@@ -343,112 +321,15 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-    {
-        if (rawMouse)
-        {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            rawMouse = false;
-        }
-        else
-        {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            rawMouse = true;
-        }
-    }
-
-    float cameraSpeed = 2.5f * deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront;
-   
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-
-    cameraPos.y = 0.0f;
-
+    camera.UpdateCameraInput(window, deltaTime);
 }
-
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    projFOV -= (float)yoffset;
-    if (projFOV < 1.0f)
-        projFOV = 1.0f;
-    if (projFOV > 45.0f)
-        projFOV = 45.0f;
+    camera.UpdateFieldOfView(window, xoffset, yoffset);
 }
-
-glm::mat4 LookAt(glm::vec3 position, glm::vec3 target, glm::vec3 up)
-{
-    //get the camera direction by normalising the result of position vector - target
-    glm::vec3 direction = glm::normalize(position - target);
-
-    //right vector is cross product of up and direction
-    glm::vec3 cameraRight = glm::normalize(glm::cross(glm::normalize(up), direction));
-    glm::vec3 cameraUp = glm::cross(direction, cameraRight);
-
-    glm::mat4 translation = glm::mat4(1.0f);
-    glm::mat4 rotation = glm::mat4(1.0f);
-
-    translation[3][0] = -position.x;
-    translation[3][1] = -position.y;
-    translation[3][2] = -position.z;
-
-    rotation[0][0] = cameraRight.x; // First column, first row
-    rotation[1][0] = cameraRight.y;
-    rotation[2][0] = cameraRight.z;
-    rotation[0][1] = cameraUp.x; // First column, second row
-    rotation[1][1] = cameraUp.y;
-    rotation[2][1] = cameraUp.z;
-    rotation[0][2] = direction.x; // First column, third row
-    rotation[1][2] = direction.y;
-    rotation[2][2] = direction.z;
-
-  
-    
-    return rotation * translation;
-
-}
-
-
-
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    if (rawMouse)
-    {
-        if (firstMouse)
-        {
-            lastX = (float)xpos;
-            lastY = (float)ypos;
-            firstMouse = false;
-        }
-
-        float xoffset = (float)xpos - lastX;
-        float yoffset = lastY - (float)ypos;
-        lastX = (float)xpos;
-        lastY = (float)ypos;
-
-        float sensitivity = 0.1f;
-        xoffset *= sensitivity;
-        yoffset *= sensitivity;
-
-        yaw += xoffset;
-        pitch += yoffset;
-
-        if (pitch > 89.0f)
-            pitch = 89.0f;
-        if (pitch < -89.0f)
-            pitch = -89.0f;
-
-        glm::vec3 direction;
-        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        direction.y = sin(glm::radians(pitch));
-        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-        cameraFront = glm::normalize(direction);
-    }
+    camera.UpdateCameraRotation(window, xpos, ypos);
 }
