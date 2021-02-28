@@ -3,12 +3,16 @@
 
 class IndexBuffer {
 public:
-	IndexBuffer(const unsigned short* data,unsigned short count)
-		: m_Count(count)
+	IndexBuffer()
 	{
 		glGenBuffers(1, &m_Id);
+	}
+
+	void SetIndexBuffer(const unsigned short* data, unsigned short count)
+	{
+		m_Count = count;
 		GLCatchError(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Id));
-		GLCatchError(glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(unsigned short), data, GL_STATIC_DRAW));	
+		GLCatchError(glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_Count * sizeof(unsigned short), data, GL_STATIC_DRAW));
 	}
 	
 	~IndexBuffer()

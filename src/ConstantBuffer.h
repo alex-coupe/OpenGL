@@ -43,6 +43,11 @@ public:
 		GLCatchError(glUniformMatrix4fv(glGetUniformLocation(m_ProgramId, m_Name.c_str()), 1, GL_FALSE, glm::value_ptr(trans)));
 	}
 
+	void SetProgram(unsigned int programId)
+	{
+		m_ProgramId = programId;
+	}
+
 private:
 	unsigned int m_Id = 0;
 	unsigned int m_ProgramId = 0;
