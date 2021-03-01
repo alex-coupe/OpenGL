@@ -6,6 +6,7 @@
 #include "VertexBuffer.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <memory>
 
 class Shape {
 public:
@@ -14,9 +15,10 @@ public:
 		m_Position(position),
 		m_Scale(scale),
 		m_Rotation(rotation),
-		m_VertexArray(),
-		m_VertexBuffer()
-	{}
+		m_VertexArray(std::make_unique<VertexArray>()),
+		m_VertexBuffer(std::make_unique<VertexBuffer>()),
+		m_IndexBuffer(std::make_unique<IndexBuffer>())
+	{	}
 protected:
 	struct Vertex {
 		struct {
@@ -33,14 +35,11 @@ protected:
 	glm::vec3 m_Rotation;
 	glm::vec3 m_Scale;
 	glm::mat4 m_ModelMatrix = glm::mat4(1.0f);
-	VertexArray m_VertexArray;
-	VertexBuffer m_VertexBuffer;
-	IndexBuffer m_IndexBuffer;
+	std::unique_ptr<VertexArray> m_VertexArray;
+	std::unique_ptr<VertexBuffer> m_VertexBuffer;
+	std::unique_ptr<IndexBuffer> m_IndexBuffer;
 public:
-	IndexBuffer GetIndexBuffer()const
-	{
-		return m_IndexBuffer;
-	}
+	
 	const glm::mat4 GetModelMatrix() const
 	{
 		return m_ModelMatrix;
@@ -70,6 +69,6 @@ public:
 	
 	void CleanUp()
 	{
-		m_VertexArray.Unbind();
+		m_VertexArray->Unbind();
 	}
 };

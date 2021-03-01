@@ -101,25 +101,18 @@ int main(void)
     vertexShader.DeleteShader();
     textureFrag.DeleteShader();
    
-
-
-    /*
     std::unique_ptr<Cube> cube =  ShapeFactory::Make<Cube>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     cube->SetIndexBuffer();
-    auto cubeIndexBuffer = cube->GetIndexBuffer();
 
     std::unique_ptr<Plane> plane = ShapeFactory::Make<Plane>(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f));
     plane->SetIndexBuffer();
-    auto planeIndexBuffer = plane->GetIndexBuffer();
    
     std::unique_ptr<Pyramid> pyramid = ShapeFactory::Make<Pyramid>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     pyramid->SetIndexBuffer();
-    auto pyramidIndexBuffer = pyramid->GetIndexBuffer();
-   */
-
+    
     std::unique_ptr<Prism> prism = ShapeFactory::Make<Prism>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     prism->SetIndexBuffer();
-    auto prismIndexBuffer = prism->GetIndexBuffer();
+   
 
     Surface wallTexture("resources/textures/wall.jpg");
     
@@ -148,7 +141,7 @@ int main(void)
         ImGui::NewFrame();
         {
             
-          /*
+          
             ImGui::Begin("Cube");
             ImGui::SliderFloat3("Rotation", &cube->GetRotation().x, -360.0f, 360.0f);
             ImGui::SliderFloat3("Scale", &cube->GetScale().x, -5.0f, 5.0f);
@@ -167,7 +160,7 @@ int main(void)
             ImGui::SliderFloat3("Scale", &pyramid->GetScale().x, -5.0f, 5.0f);
             ImGui::SliderFloat3("Translation", &pyramid->GetPosition().x, -5.0f, 5.0f);
             ImGui::End();
-             */
+             
 
             ImGui::Begin("Prism");
             ImGui::SliderFloat3("Rotation", &prism->GetRotation().x, -360.0f, 360.0f);
@@ -196,27 +189,27 @@ int main(void)
         viewMatrix.SetUniformMatrix4fv(view);
         projectionMatrix.SetUniformMatrix4fv(projection);
             
-        /*
+        
         cube->Bind();
         cube->UpdateModelMatrix();
         modelMatrix.SetUniformMatrix4fv(cube->GetModelMatrix());
-        renderer.Draw(cubeIndexBuffer);
+        renderer.Draw(cube->GetIndicies());
 
         plane->Bind();
         plane->UpdateModelMatrix();
         modelMatrix.SetUniformMatrix4fv(plane->GetModelMatrix());
-        renderer.Draw(planeIndexBuffer);
+        renderer.Draw(cube->GetIndicies());
         
         pyramid->Bind();
         pyramid->UpdateModelMatrix();
         modelMatrix.SetUniformMatrix4fv(pyramid->GetModelMatrix());
-        renderer.Draw(pyramidIndexBuffer);        
-        */
+        renderer.Draw(pyramid->GetIndicies());        
+        
         
         prism->Bind();
         prism->UpdateModelMatrix();
         modelMatrix.SetUniformMatrix4fv(prism->GetModelMatrix());
-        renderer.Draw(prismIndexBuffer);
+        renderer.Draw(prism->GetIndicies());
 
 
         /* Swap front and back buffers */
@@ -225,10 +218,10 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
-    /*cube->CleanUp();
+    cube->CleanUp();
     plane->CleanUp();
     pyramid->CleanUp();
-    */
+    prism->CleanUp();
 
     textureProgram.DeleteProgram();
   

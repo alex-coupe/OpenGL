@@ -6,6 +6,7 @@ public:
 	Pyramid(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 	void SetIndexBuffer();
 	void Bind();
+    const unsigned short GetIndicies() const;
 private:
     const std::vector<Vertex> m_Vertices = {
        

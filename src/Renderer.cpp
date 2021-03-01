@@ -11,9 +11,9 @@ void Renderer::BeginFrame() const
 	GLCatchError(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
-void Renderer::Draw(const IndexBuffer& ib) const
+void Renderer::Draw(const unsigned short indexCount) const
 {
-	GLCatchError(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_SHORT, nullptr));
+	GLCatchError(glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, nullptr));
 }
 
 void Renderer::Draw(GLint first, GLsizei count) const
