@@ -20,7 +20,7 @@
 #include "Renderer.h"
 #include "Surface.h"
 #include "Camera.h"
-
+#include "Pyramid.h"
 
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -102,13 +102,18 @@ int main(void)
    
 
 
-    std::vector<std::unique_ptr<Cube>> cubes;
-    cubes.emplace_back(ShapeFactory::Make<Cube>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
-    cubes.emplace_back(ShapeFactory::Make<Cube>(glm::vec3(4.0f, 0.0f, -5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(3.0f, 3.0f, 3.0f)));
-    cubes.emplace_back(ShapeFactory::Make<Plane>(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f)));
-    cubes.front()->SetIndexBuffer();
-    auto cubeIndexBuffer = cubes.front()->GetIndexBuffer();
+    /*
+    std::unique_ptr<Cube> cube =  ShapeFactory::Make<Cube>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    cube->SetIndexBuffer();
+    auto cubeIndexBuffer = cube->GetIndexBuffer();
 
+    std::unique_ptr<Plane> plane = ShapeFactory::Make<Plane>(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f));
+    plane->SetIndexBuffer();
+    auto planeIndexBuffer = plane->GetIndexBuffer();
+    */
+    std::unique_ptr<Pyramid> pyramid = ShapeFactory::Make<Pyramid>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    pyramid->SetIndexBuffer();
+    auto pyramidIndexBuffer = pyramid->GetIndexBuffer();
   
     Surface wallTexture("resources/textures/wall.jpg");
     
@@ -137,18 +142,26 @@ int main(void)
         ImGui::NewFrame();
         {
             
-            for (uint32_t index = 0; index < cubes.size(); index++)
-            {
-                const auto& c = cubes.at(index);
-                std::string name = "Cube ";
-                name += std::to_string(index);
-                ImGui::Begin(name.c_str());
-                ImGui::SliderFloat3("Rotation", &c->GetRotation().x, -360.0f, 360.0f);
-                ImGui::SliderFloat3("Scale", &c->GetScale().x, -5.0f, 5.0f);
-                ImGui::SliderFloat3("Translation", &c->GetPosition().x, -5.0f, 5.0f);
-                ImGui::End();
-              
-            }
+          /*
+            ImGui::Begin("Cube");
+            ImGui::SliderFloat3("Rotation", &cube->GetRotation().x, -360.0f, 360.0f);
+            ImGui::SliderFloat3("Scale", &cube->GetScale().x, -5.0f, 5.0f);
+            ImGui::SliderFloat3("Translation", &cube->GetPosition().x, -5.0f, 5.0f);
+            ImGui::End();
+            
+            ImGui::Begin("Plane");
+            ImGui::SliderFloat3("Rotation", &plane->GetRotation().x, -360.0f, 360.0f);
+            ImGui::SliderFloat3("Scale", &plane->GetScale().x, -5.0f, 5.0f);
+            ImGui::SliderFloat3("Translation", &plane->GetPosition().x, -5.0f, 5.0f);
+            ImGui::End();
+          */
+
+            ImGui::Begin("Pyramid");
+            ImGui::SliderFloat3("Rotation", &pyramid->GetRotation().x, -360.0f, 360.0f);
+            ImGui::SliderFloat3("Scale", &pyramid->GetScale().x, -5.0f, 5.0f);
+            ImGui::SliderFloat3("Translation", &pyramid->GetPosition().x, -5.0f, 5.0f);
+            ImGui::End();
+
 
             ImGui::Begin("Debug");
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
@@ -162,26 +175,30 @@ int main(void)
         
         glm::mat4 view = camera.GetLookAt();
         glm::mat4 projection = glm::perspective(glm::radians(camera.GetFieldOfView()), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
-             
-        
-        for (uint32_t index = 0; index < cubes.size(); index++)
-        {
+                    
+        textureProgram.UseProgram();
+        textureOne.SetProgram(textureProgram.GetId());
+        modelMatrix.SetProgram(textureProgram.GetId());
+        viewMatrix.SetProgram(textureProgram.GetId());
+        projectionMatrix.SetProgram(textureProgram.GetId());
+        viewMatrix.SetUniformMatrix4fv(view);
+        projectionMatrix.SetUniformMatrix4fv(projection);
             
-            textureProgram.UseProgram();
-            textureOne.SetProgram(textureProgram.GetId());
-            modelMatrix.SetProgram(textureProgram.GetId());
-            viewMatrix.SetProgram(textureProgram.GetId());
-            projectionMatrix.SetProgram(textureProgram.GetId());
+        /*
+        cube->Bind();
+        cube->UpdateModelMatrix();
+        modelMatrix.SetUniformMatrix4fv(cube->GetModelMatrix());
+        renderer.Draw(cubeIndexBuffer);
 
-            viewMatrix.SetUniformMatrix4fv(view);
-            projectionMatrix.SetUniformMatrix4fv(projection);
-            
-            const auto& c = cubes.at(index);
-            c->Bind();
-            c->UpdateModelMatrix();
-            modelMatrix.SetUniformMatrix4fv(c->GetModelMatrix());
-            renderer.Draw(cubeIndexBuffer);
-        }
+        plane->Bind();
+        plane->UpdateModelMatrix();
+        modelMatrix.SetUniformMatrix4fv(plane->GetModelMatrix());
+        renderer.Draw(planeIndexBuffer);
+        */
+        pyramid->Bind();
+        pyramid->UpdateModelMatrix();
+        modelMatrix.SetUniformMatrix4fv(pyramid->GetModelMatrix());
+        renderer.Draw(pyramidIndexBuffer);        
 
      
 
@@ -192,12 +209,9 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
-    for (uint32_t index = 0; index < cubes.size(); index++)
-    {
-        const auto& c = cubes.at(index);
-
-        c->CleanUp();
-    }
+    cube->CleanUp();
+    plane->CleanUp();
+    pyramid->CleanUp();
     
     textureProgram.DeleteProgram();
   
