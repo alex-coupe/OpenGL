@@ -9,20 +9,15 @@
 #include <Imgui/imgui_impl_opengl3.h>
 
 #include "Shader.h"
-#include "ShaderProgram.h"
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
 #include "VertexArray.h"
-#include "ConstantBuffer.h"
 #include "ShapeFactory.h"
 #include "Cube.h"
-#include "Plane.h"
 #include "Renderer.h"
 #include "Surface.h"
 #include "Camera.h"
-#include "Pyramid.h"
-#include "Prism.h"
-#include "Cone.h"
+
 
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -92,43 +87,24 @@ int main(void)
     ImGui::StyleColorsDark();
 
     //Shaders
-    Shader vertexShader("resources/shaders/vertex_default.glsl", VERTEX_SHADER);
-    Shader textureFrag("resources/shaders/frag_default.glsl", FRAGMENT_SHADER);
- 
-    ShaderProgram textureProgram(vertexShader.GetId(), textureFrag.GetId());
-   
-    textureProgram.UseProgram();
-
-    vertexShader.DeleteShader();
-    textureFrag.DeleteShader();
-   
-    std::unique_ptr<Cube> cube =  ShapeFactory::Make<Cube>(glm::vec3(-4.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    Shader lightingShader("resources/shaders/vertex_default.glsl", "resources/shaders/frag_default.glsl");
+    Shader lightCubeShader("resources/shaders/vertex_light.glsl", "resources/shaders/frag_light.glsl");
+  
+  
+    std::unique_ptr<Cube> cube =  ShapeFactory::Make<Cube>(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     cube->SetIndexBuffer();
 
-    std::unique_ptr<Plane> plane = ShapeFactory::Make<Plane>(glm::vec3(-2.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f));
-    plane->SetIndexBuffer();
-   
-    std::unique_ptr<Pyramid> pyramid = ShapeFactory::Make<Pyramid>(glm::vec3(3.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    pyramid->SetIndexBuffer();
-    
-    std::unique_ptr<Prism> prism = ShapeFactory::Make<Prism>(glm::vec3(3.0f, 2.0f, -4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    prism->SetIndexBuffer();
-
-    std::unique_ptr<Cone> cone = ShapeFactory::Make<Cone>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    cone->SetIndexBuffer();
-
-    Surface wallTexture("resources/textures/wall.jpg");
-    
-    unsigned int id = textureProgram.GetId();
-
-    ConstantBuffer textureOne(id, "texture1");
-    ConstantBuffer color(id, "color");
-    ConstantBuffer modelMatrix(id, "model");
-    ConstantBuffer viewMatrix(id, "view");
-    ConstantBuffer projectionMatrix(id, "projection");
+    std::unique_ptr<Cube> light = ShapeFactory::Make<Cube>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f));
+    light->SetIndexBuffer();
+      
+     
 
     Renderer renderer(ENABLE_DEPTH_TEST);
 
+    float lightCol[3] = { 1.0f,1.0f,1.0f };
+
+    
+   
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -152,33 +128,15 @@ int main(void)
             ImGui::SliderFloat3("Scale", &cube->GetScale().x, -5.0f, 5.0f);
             ImGui::SliderFloat3("Translation", &cube->GetPosition().x, -5.0f, 5.0f);
             ImGui::End();
+
+            ImGui::Begin("Light");
+            ImGui::SliderFloat3("Rotation", &light->GetRotation().x, -360.0f, 360.0f);
+            ImGui::SliderFloat3("Scale", &light->GetScale().x, -5.0f, 5.0f);
+            ImGui::SliderFloat3("Translation", &light->GetPosition().x, -5.0f, 5.0f);
+            ImGui::ColorPicker3("Color", lightCol);
+            ImGui::End();
             
-            ImGui::Begin("Plane");
-            ImGui::SliderFloat3("Rotation", &plane->GetRotation().x, -360.0f, 360.0f);
-            ImGui::SliderFloat3("Scale", &plane->GetScale().x, -5.0f, 5.0f);
-            ImGui::SliderFloat3("Translation", &plane->GetPosition().x, -5.0f, 5.0f);
-            ImGui::End();
          
-
-            ImGui::Begin("Pyramid");
-            ImGui::SliderFloat3("Rotation", &pyramid->GetRotation().x, -360.0f, 360.0f);
-            ImGui::SliderFloat3("Scale", &pyramid->GetScale().x, -5.0f, 5.0f);
-            ImGui::SliderFloat3("Translation", &pyramid->GetPosition().x, -5.0f, 5.0f);
-            ImGui::End();
-             
-
-            ImGui::Begin("Prism");
-            ImGui::SliderFloat3("Rotation", &prism->GetRotation().x, -360.0f, 360.0f);
-            ImGui::SliderFloat3("Scale", &prism->GetScale().x, -5.0f, 5.0f);
-            ImGui::SliderFloat3("Translation", &prism->GetPosition().x, -5.0f, 5.0f);
-            ImGui::End();
-
-            ImGui::Begin("Cone");
-            ImGui::SliderFloat3("Rotation", &cone->GetRotation().x, -360.0f, 360.0f);
-            ImGui::SliderFloat3("Scale", &cone->GetScale().x, -5.0f, 5.0f);
-            ImGui::SliderFloat3("Translation", &cone->GetPosition().x, -5.0f, 5.0f);
-            ImGui::End();
-
             ImGui::Begin("Debug");
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0 / float(ImGui::GetIO().Framerate), float(ImGui::GetIO().Framerate));
@@ -191,38 +149,32 @@ int main(void)
         
         glm::mat4 view = camera.GetLookAt();
         glm::mat4 projection = glm::perspective(glm::radians(camera.GetFieldOfView()), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
-                           
-        viewMatrix.SetUniformMatrix4fv(view);
-        projectionMatrix.SetUniformMatrix4fv(projection);
-            
+                    
+        lightingShader.use();
+        lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+        lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+        lightingShader.setVec3("lightPos", light->GetPosition());
+        lightingShader.setMat4("projection", projection);
+        lightingShader.setMat4("view", view);
         cube->Bind();
         cube->UpdateModelMatrix();
-        modelMatrix.SetUniformMatrix4fv(cube->GetModelMatrix());
-        color.SetUniform4f(1.0f, 1.0f, 1.0f, 1.0f);
-        renderer.Draw(cube->GetIndicies());
 
-        plane->Bind();
-        plane->UpdateModelMatrix();
-        modelMatrix.SetUniformMatrix4fv(plane->GetModelMatrix());
-        renderer.Draw(cube->GetIndicies());
+        lightingShader.setMat4("model", cube->GetModelMatrix());
+       
+        renderer.Draw(0,36);
+       
+     
+
+        lightCubeShader.use();
+        lightCubeShader.setMat4("projection", projection);
+        lightCubeShader.setMat4("view", view);
+        light->Bind();
+        light->UpdateModelMatrix();
+        lightCubeShader.setMat4("model", light->GetModelMatrix() );
+      
         
-        pyramid->Bind();
-        pyramid->UpdateModelMatrix();
-        modelMatrix.SetUniformMatrix4fv(pyramid->GetModelMatrix());
-        color.SetUniform4f(1.0f, 0.0f, 1.0f, 1.0f);
-        renderer.Draw(pyramid->GetIndicies());        
-                
-        prism->Bind();
-        prism->UpdateModelMatrix();
-        modelMatrix.SetUniformMatrix4fv(prism->GetModelMatrix());
-        color.SetUniform4f(0.0f, 1.0f, 1.0f, 1.0f);
-        renderer.Draw(prism->GetIndicies());
+        renderer.Draw(0,36);
 
-        cone->Bind();
-        cone->UpdateModelMatrix();
-        modelMatrix.SetUniformMatrix4fv(cone->GetModelMatrix());
-        color.SetUniform4f(0.5f,0.5f, 1.0f, 1.0f);
-        renderer.Draw(cone->GetIndicies());
 
         /* Swap front and back buffers */
         renderer.EndFrame(window);
@@ -231,11 +183,8 @@ int main(void)
         glfwPollEvents();
     }
     cube->CleanUp();
-    plane->CleanUp();
-    pyramid->CleanUp();
-    prism->CleanUp();
-    cone->CleanUp();
-    textureProgram.DeleteProgram();
+    light->CleanUp();
+ 
   
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
