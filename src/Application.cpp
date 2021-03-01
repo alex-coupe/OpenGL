@@ -16,6 +16,7 @@
 #include "ConstantBuffer.h"
 #include "ShapeFactory.h"
 #include "Cube.h"
+#include "Plane.h"
 #include "Renderer.h"
 #include "Surface.h"
 #include "Camera.h"
@@ -90,27 +91,29 @@ int main(void)
 
     //Shaders
     Shader vertexShader("resources/shaders/vertex_default.glsl", VERTEX_SHADER);
-    Shader textureFrag("resources/shaders/frag_texture.glsl", FRAGMENT_SHADER);
-    Shader colorFrag("resources/shaders/frag_color.glsl", FRAGMENT_SHADER);
+    Shader textureFrag("resources/shaders/frag_default.glsl", FRAGMENT_SHADER);
+ 
     ShaderProgram textureProgram(vertexShader.GetId(), textureFrag.GetId());
-    ShaderProgram colorProgram(vertexShader.GetId(), colorFrag.GetId());
+   
     textureProgram.UseProgram();
 
     vertexShader.DeleteShader();
     textureFrag.DeleteShader();
-    colorFrag.DeleteShader();
+   
+
 
     std::vector<std::unique_ptr<Cube>> cubes;
     cubes.emplace_back(ShapeFactory::Make<Cube>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
     cubes.emplace_back(ShapeFactory::Make<Cube>(glm::vec3(4.0f, 0.0f, -5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(3.0f, 3.0f, 3.0f)));
-        
-
+    cubes.emplace_back(ShapeFactory::Make<Plane>(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f)));
     cubes.front()->SetIndexBuffer();
     auto cubeIndexBuffer = cubes.front()->GetIndexBuffer();
-   
-    Surface texture1("resources/textures/wall.jpg");
 
-    ConstantBuffer cbuff(textureProgram.GetId(), "texture1");
+  
+    Surface wallTexture("resources/textures/wall.jpg");
+    
+
+    ConstantBuffer textureOne(textureProgram.GetId(), "texture1");
     ConstantBuffer modelMatrix(textureProgram.GetId(), "model");
     ConstantBuffer viewMatrix(textureProgram.GetId(), "view");
     ConstantBuffer projectionMatrix(textureProgram.GetId(), "projection");
@@ -160,38 +163,27 @@ int main(void)
         glm::mat4 view = camera.GetLookAt();
         glm::mat4 projection = glm::perspective(glm::radians(camera.GetFieldOfView()), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
              
-     
+        
         for (uint32_t index = 0; index < cubes.size(); index++)
         {
-            if (index > 0)
-            {
-                colorProgram.UseProgram();
-                cbuff.SetProgram(colorProgram.GetId());
-                modelMatrix.SetProgram(colorProgram.GetId());
-                viewMatrix.SetProgram(colorProgram.GetId());
-                projectionMatrix.SetProgram(colorProgram.GetId());
+            
+            textureProgram.UseProgram();
+            textureOne.SetProgram(textureProgram.GetId());
+            modelMatrix.SetProgram(textureProgram.GetId());
+            viewMatrix.SetProgram(textureProgram.GetId());
+            projectionMatrix.SetProgram(textureProgram.GetId());
 
-                viewMatrix.SetUniformMatrix4fv(view);
-                projectionMatrix.SetUniformMatrix4fv(projection);
-          }
-            else
-            {
-                textureProgram.UseProgram();
-                cbuff.SetProgram(textureProgram.GetId());
-                modelMatrix.SetProgram(textureProgram.GetId());
-                viewMatrix.SetProgram(textureProgram.GetId());
-                projectionMatrix.SetProgram(textureProgram.GetId());
-
-                viewMatrix.SetUniformMatrix4fv(view);
-                projectionMatrix.SetUniformMatrix4fv(projection);
-            }
-
+            viewMatrix.SetUniformMatrix4fv(view);
+            projectionMatrix.SetUniformMatrix4fv(projection);
+            
             const auto& c = cubes.at(index);
-
+            c->Bind();
             c->UpdateModelMatrix();
             modelMatrix.SetUniformMatrix4fv(c->GetModelMatrix());
             renderer.Draw(cubeIndexBuffer);
         }
+
+     
 
 
         /* Swap front and back buffers */
@@ -208,6 +200,7 @@ int main(void)
     }
     
     textureProgram.DeleteProgram();
+  
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();

@@ -45,6 +45,7 @@ public:
 	void SetTextureSlot(unsigned int slot)
 	{
 		GLCatchError(glActiveTexture(GL_TEXTURE0 + slot));
+
 	}
 
 	

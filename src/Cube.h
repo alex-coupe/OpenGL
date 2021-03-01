@@ -4,14 +4,8 @@
 class Cube : public Shape {
 public:
 	Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
-    IndexBuffer GetIndexBuffer() const;
-    const glm::mat4 GetModelMatrix() const;
-    void UpdateModelMatrix();
-    glm::vec3& GetPosition();
-    glm::vec3& GetRotation();
-    glm::vec3& GetScale();
     void SetIndexBuffer();
-    void CleanUp();
+    void Bind();
 private:
     
     const std::vector<Vertex> m_Vertices = {
