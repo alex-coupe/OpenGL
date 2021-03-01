@@ -22,6 +22,7 @@
 #include "Camera.h"
 #include "Pyramid.h"
 #include "Prism.h"
+#include "Cone.h"
 
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -101,7 +102,7 @@ int main(void)
     vertexShader.DeleteShader();
     textureFrag.DeleteShader();
    
-    std::unique_ptr<Cube> cube =  ShapeFactory::Make<Cube>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    std::unique_ptr<Cube> cube =  ShapeFactory::Make<Cube>(glm::vec3(-4.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     cube->SetIndexBuffer();
 
     std::unique_ptr<Plane> plane = ShapeFactory::Make<Plane>(glm::vec3(-2.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f));
@@ -110,9 +111,12 @@ int main(void)
     std::unique_ptr<Pyramid> pyramid = ShapeFactory::Make<Pyramid>(glm::vec3(3.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     pyramid->SetIndexBuffer();
     
-    std::unique_ptr<Prism> prism = ShapeFactory::Make<Prism>(glm::vec3(0.0f, 2.0f, -4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    std::unique_ptr<Prism> prism = ShapeFactory::Make<Prism>(glm::vec3(3.0f, 2.0f, -4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     prism->SetIndexBuffer();
-   
+
+    std::unique_ptr<Cone> cone = ShapeFactory::Make<Cone>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    cone->SetIndexBuffer();
+
     Surface wallTexture("resources/textures/wall.jpg");
     
     unsigned int id = textureProgram.GetId();
@@ -169,6 +173,12 @@ int main(void)
             ImGui::SliderFloat3("Translation", &prism->GetPosition().x, -5.0f, 5.0f);
             ImGui::End();
 
+            ImGui::Begin("Cone");
+            ImGui::SliderFloat3("Rotation", &cone->GetRotation().x, -360.0f, 360.0f);
+            ImGui::SliderFloat3("Scale", &cone->GetScale().x, -5.0f, 5.0f);
+            ImGui::SliderFloat3("Translation", &cone->GetPosition().x, -5.0f, 5.0f);
+            ImGui::End();
+
             ImGui::Begin("Debug");
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0 / float(ImGui::GetIO().Framerate), float(ImGui::GetIO().Framerate));
@@ -201,14 +211,18 @@ int main(void)
         modelMatrix.SetUniformMatrix4fv(pyramid->GetModelMatrix());
         color.SetUniform4f(1.0f, 0.0f, 1.0f, 1.0f);
         renderer.Draw(pyramid->GetIndicies());        
-        
-        
+                
         prism->Bind();
         prism->UpdateModelMatrix();
         modelMatrix.SetUniformMatrix4fv(prism->GetModelMatrix());
         color.SetUniform4f(0.0f, 1.0f, 1.0f, 1.0f);
         renderer.Draw(prism->GetIndicies());
 
+        cone->Bind();
+        cone->UpdateModelMatrix();
+        modelMatrix.SetUniformMatrix4fv(cone->GetModelMatrix());
+        color.SetUniform4f(0.5f,0.5f, 1.0f, 1.0f);
+        renderer.Draw(cone->GetIndicies());
 
         /* Swap front and back buffers */
         renderer.EndFrame(window);
@@ -220,7 +234,7 @@ int main(void)
     plane->CleanUp();
     pyramid->CleanUp();
     prism->CleanUp();
-
+    cone->CleanUp();
     textureProgram.DeleteProgram();
   
     ImGui_ImplOpenGL3_Shutdown();
