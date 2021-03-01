@@ -21,6 +21,7 @@
 #include "Surface.h"
 #include "Camera.h"
 #include "Pyramid.h"
+#include "Prism.h"
 
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -110,11 +111,16 @@ int main(void)
     std::unique_ptr<Plane> plane = ShapeFactory::Make<Plane>(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f));
     plane->SetIndexBuffer();
     auto planeIndexBuffer = plane->GetIndexBuffer();
-    */
+   
     std::unique_ptr<Pyramid> pyramid = ShapeFactory::Make<Pyramid>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     pyramid->SetIndexBuffer();
     auto pyramidIndexBuffer = pyramid->GetIndexBuffer();
-  
+   */
+
+    std::unique_ptr<Prism> prism = ShapeFactory::Make<Prism>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    prism->SetIndexBuffer();
+    auto prismIndexBuffer = prism->GetIndexBuffer();
+
     Surface wallTexture("resources/textures/wall.jpg");
     
 
@@ -154,14 +160,20 @@ int main(void)
             ImGui::SliderFloat3("Scale", &plane->GetScale().x, -5.0f, 5.0f);
             ImGui::SliderFloat3("Translation", &plane->GetPosition().x, -5.0f, 5.0f);
             ImGui::End();
-          */
+         
 
             ImGui::Begin("Pyramid");
             ImGui::SliderFloat3("Rotation", &pyramid->GetRotation().x, -360.0f, 360.0f);
             ImGui::SliderFloat3("Scale", &pyramid->GetScale().x, -5.0f, 5.0f);
             ImGui::SliderFloat3("Translation", &pyramid->GetPosition().x, -5.0f, 5.0f);
             ImGui::End();
+             */
 
+            ImGui::Begin("Prism");
+            ImGui::SliderFloat3("Rotation", &prism->GetRotation().x, -360.0f, 360.0f);
+            ImGui::SliderFloat3("Scale", &prism->GetScale().x, -5.0f, 5.0f);
+            ImGui::SliderFloat3("Translation", &prism->GetPosition().x, -5.0f, 5.0f);
+            ImGui::End();
 
             ImGui::Begin("Debug");
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
@@ -194,13 +206,17 @@ int main(void)
         plane->UpdateModelMatrix();
         modelMatrix.SetUniformMatrix4fv(plane->GetModelMatrix());
         renderer.Draw(planeIndexBuffer);
-        */
+        
         pyramid->Bind();
         pyramid->UpdateModelMatrix();
         modelMatrix.SetUniformMatrix4fv(pyramid->GetModelMatrix());
         renderer.Draw(pyramidIndexBuffer);        
-
-     
+        */
+        
+        prism->Bind();
+        prism->UpdateModelMatrix();
+        modelMatrix.SetUniformMatrix4fv(prism->GetModelMatrix());
+        renderer.Draw(prismIndexBuffer);
 
 
         /* Swap front and back buffers */
@@ -209,10 +225,11 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
-    cube->CleanUp();
+    /*cube->CleanUp();
     plane->CleanUp();
     pyramid->CleanUp();
-    
+    */
+
     textureProgram.DeleteProgram();
   
     ImGui_ImplOpenGL3_Shutdown();
