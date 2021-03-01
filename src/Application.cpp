@@ -104,23 +104,24 @@ int main(void)
     std::unique_ptr<Cube> cube =  ShapeFactory::Make<Cube>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     cube->SetIndexBuffer();
 
-    std::unique_ptr<Plane> plane = ShapeFactory::Make<Plane>(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f));
+    std::unique_ptr<Plane> plane = ShapeFactory::Make<Plane>(glm::vec3(-2.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f));
     plane->SetIndexBuffer();
    
-    std::unique_ptr<Pyramid> pyramid = ShapeFactory::Make<Pyramid>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    std::unique_ptr<Pyramid> pyramid = ShapeFactory::Make<Pyramid>(glm::vec3(3.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     pyramid->SetIndexBuffer();
     
-    std::unique_ptr<Prism> prism = ShapeFactory::Make<Prism>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    std::unique_ptr<Prism> prism = ShapeFactory::Make<Prism>(glm::vec3(0.0f, 2.0f, -4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     prism->SetIndexBuffer();
    
-
     Surface wallTexture("resources/textures/wall.jpg");
     
+    unsigned int id = textureProgram.GetId();
 
-    ConstantBuffer textureOne(textureProgram.GetId(), "texture1");
-    ConstantBuffer modelMatrix(textureProgram.GetId(), "model");
-    ConstantBuffer viewMatrix(textureProgram.GetId(), "view");
-    ConstantBuffer projectionMatrix(textureProgram.GetId(), "projection");
+    ConstantBuffer textureOne(id, "texture1");
+    ConstantBuffer color(id, "color");
+    ConstantBuffer modelMatrix(id, "model");
+    ConstantBuffer viewMatrix(id, "view");
+    ConstantBuffer projectionMatrix(id, "projection");
 
     Renderer renderer(ENABLE_DEPTH_TEST);
 
@@ -180,19 +181,14 @@ int main(void)
         
         glm::mat4 view = camera.GetLookAt();
         glm::mat4 projection = glm::perspective(glm::radians(camera.GetFieldOfView()), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
-                    
-        textureProgram.UseProgram();
-        textureOne.SetProgram(textureProgram.GetId());
-        modelMatrix.SetProgram(textureProgram.GetId());
-        viewMatrix.SetProgram(textureProgram.GetId());
-        projectionMatrix.SetProgram(textureProgram.GetId());
+                           
         viewMatrix.SetUniformMatrix4fv(view);
         projectionMatrix.SetUniformMatrix4fv(projection);
             
-        
         cube->Bind();
         cube->UpdateModelMatrix();
         modelMatrix.SetUniformMatrix4fv(cube->GetModelMatrix());
+        color.SetUniform4f(1.0f, 1.0f, 1.0f, 1.0f);
         renderer.Draw(cube->GetIndicies());
 
         plane->Bind();
@@ -203,12 +199,14 @@ int main(void)
         pyramid->Bind();
         pyramid->UpdateModelMatrix();
         modelMatrix.SetUniformMatrix4fv(pyramid->GetModelMatrix());
+        color.SetUniform4f(1.0f, 0.0f, 1.0f, 1.0f);
         renderer.Draw(pyramid->GetIndicies());        
         
         
         prism->Bind();
         prism->UpdateModelMatrix();
         modelMatrix.SetUniformMatrix4fv(prism->GetModelMatrix());
+        color.SetUniform4f(0.0f, 1.0f, 1.0f, 1.0f);
         renderer.Draw(prism->GetIndicies());
 
 
