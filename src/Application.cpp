@@ -91,23 +91,25 @@ int main(void)
     Shader lightCubeShader("resources/shaders/vertex_light.glsl", "resources/shaders/frag_light.glsl");
   
   
-    std::unique_ptr<Cube> cube =  ShapeFactory::Make<Cube>(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    std::unique_ptr<Cube> cube =  ShapeFactory::Make<Cube>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     cube->SetIndexBuffer();
 
-    std::unique_ptr<Cube> light = ShapeFactory::Make<Cube>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f));
+    std::unique_ptr<Cube> light = ShapeFactory::Make<Cube>(glm::vec3(1.2f, 1.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f));
     light->SetIndexBuffer();
       
-     
+    Surface diffuseMap("resources/textures/container2.png");
+    Surface specularMap("resources/textures/container2_specular.png", 1);
 
     Renderer renderer(ENABLE_DEPTH_TEST);
 
     float lightCol[3] = { 0.5f, 0.5f, 0.5f };
 
     float objectColour[3] = { 1.0f, 0.5f, 0.31f };
-    float ambient[3] = { 1.0f, 0.5f, 0.31f };
-    float diffuse[3] = { 1.0f, 0.5f, 0.31f };
+   
     float specular[3] = { 0.5f, 0.5f, 0.5f };
-    float shine = 32.0f;
+    float lightAmbient[3] = { 0.2f, 0.2f, 0.2f };
+    float lightSpecular[3] = { 1.0f, 1.0f, 1.0f };
+    float shine = 64.0f;
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -134,16 +136,13 @@ int main(void)
             ImGui::End();
 
             ImGui::Begin("Light");
-            ImGui::SliderFloat3("Rotation", &light->GetRotation().x, -360.0f, 360.0f);
-            ImGui::SliderFloat3("Scale", &light->GetScale().x, -5.0f, 5.0f);
             ImGui::SliderFloat3("Translation", &light->GetPosition().x, -5.0f, 5.0f);
+            ImGui::SliderFloat3("Ambient", lightAmbient, 0.0f, 1.0f);
+            ImGui::SliderFloat3("Specular", lightSpecular, 0.0f, 1.0f);
             ImGui::ColorPicker3("Color", lightCol);
             ImGui::End();
 
             ImGui::Begin("Material");
-            ImGui::SliderFloat3("Ambient", ambient, 0.0f, 1.0f);
-            ImGui::SliderFloat3("Diffuse", diffuse, 0.0f, 1.0f);
-            ImGui::SliderFloat3("Specular", specular, 0.0f, 1.0f);
             ImGui::SliderFloat("Shine", &shine, 0.0f, 512.0f);
             ImGui::End();
             
@@ -164,14 +163,13 @@ int main(void)
         lightingShader.use();
         lightingShader.setVec3("objectColor",objectColour[0], objectColour[1], objectColour[2]);
         lightingShader.setVec3("lightColor", lightCol[0], lightCol[1], lightCol[2]);
-        lightingShader.setVec3("material.ambient", ambient[0], ambient[1], ambient[2]);
-        lightingShader.setVec3("material.diffuse", diffuse[0], diffuse[1], diffuse[2]);
-        lightingShader.setVec3("material.specular", specular[0], specular[1], specular[2]);
-        lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+        lightingShader.setVec3("light.ambient", lightAmbient[0], lightAmbient[1], lightAmbient[2]);
         lightingShader.setVec3("light.diffuse",lightCol[0], lightCol[1], lightCol[2]); // darken diffuse light a bit
-        lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        lightingShader.setVec3("light.specular", lightSpecular[0], lightSpecular[1], lightSpecular[2]);
         lightingShader.setFloat("material.shininess", shine);
         lightingShader.setVec3("light.position", light->GetPosition());
+        lightingShader.setInt("material.diffuse", 0);
+        lightingShader.setInt("material.specular", 1);
         lightingShader.setVec3("viewPos", camera.GetPosition());
         lightingShader.setMat4("projection", projection);
         lightingShader.setMat4("view", view);
