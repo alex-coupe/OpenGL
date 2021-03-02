@@ -40,6 +40,11 @@ public:
             m_Fov = 45.0f;
     }
 
+    const glm::vec3 GetPosition() const
+    {
+        return m_Position;
+    }
+
     const float GetFieldOfView() const
     {
         return m_Fov;
