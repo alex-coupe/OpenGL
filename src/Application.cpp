@@ -99,6 +99,7 @@ int main(void)
       
     Surface diffuseMap("resources/textures/container2.png");
     Surface specularMap("resources/textures/container2_specular.png", 1);
+    Surface emissionsMap("resources/textures/matrix.jpg", 2);
 
     Renderer renderer(ENABLE_DEPTH_TEST);
 
@@ -169,7 +170,9 @@ int main(void)
         lightingShader.setFloat("material.shininess", shine);
         lightingShader.setVec3("light.position", light->GetPosition());
         lightingShader.setInt("material.diffuse", 0);
+        lightingShader.setFloat("time", glfwGetTime());
         lightingShader.setInt("material.specular", 1);
+        lightingShader.setInt("material.emission", 2);
         lightingShader.setVec3("viewPos", camera.GetPosition());
         lightingShader.setMat4("projection", projection);
         lightingShader.setMat4("view", view);
