@@ -101,10 +101,13 @@ int main(void)
 
     Renderer renderer(ENABLE_DEPTH_TEST);
 
-    float lightCol[3] = { 1.0f,1.0f,1.0f };
+    float lightCol[3] = { 0.5f, 0.5f, 0.5f };
 
-    
-   
+    float objectColour[3] = { 1.0f, 0.5f, 0.31f };
+    float ambient[3] = { 1.0f, 0.5f, 0.31f };
+    float diffuse[3] = { 1.0f, 0.5f, 0.31f };
+    float specular[3] = { 0.5f, 0.5f, 0.5f };
+    float shine = 32.0f;
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -127,6 +130,7 @@ int main(void)
             ImGui::SliderFloat3("Rotation", &cube->GetRotation().x, -360.0f, 360.0f);
             ImGui::SliderFloat3("Scale", &cube->GetScale().x, -5.0f, 5.0f);
             ImGui::SliderFloat3("Translation", &cube->GetPosition().x, -5.0f, 5.0f);
+            ImGui::ColorPicker3("Color", objectColour);
             ImGui::End();
 
             ImGui::Begin("Light");
@@ -134,6 +138,13 @@ int main(void)
             ImGui::SliderFloat3("Scale", &light->GetScale().x, -5.0f, 5.0f);
             ImGui::SliderFloat3("Translation", &light->GetPosition().x, -5.0f, 5.0f);
             ImGui::ColorPicker3("Color", lightCol);
+            ImGui::End();
+
+            ImGui::Begin("Material");
+            ImGui::SliderFloat3("Ambient", ambient, 0.0f, 1.0f);
+            ImGui::SliderFloat3("Diffuse", diffuse, 0.0f, 1.0f);
+            ImGui::SliderFloat3("Specular", specular, 0.0f, 1.0f);
+            ImGui::SliderFloat("Shine", &shine, 0.0f, 512.0f);
             ImGui::End();
             
          
@@ -151,9 +162,16 @@ int main(void)
         glm::mat4 projection = glm::perspective(glm::radians(camera.GetFieldOfView()), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
                     
         lightingShader.use();
-        lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-        lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-        lightingShader.setVec3("lightPos", light->GetPosition());
+        lightingShader.setVec3("objectColor",objectColour[0], objectColour[1], objectColour[2]);
+        lightingShader.setVec3("lightColor", lightCol[0], lightCol[1], lightCol[2]);
+        lightingShader.setVec3("material.ambient", ambient[0], ambient[1], ambient[2]);
+        lightingShader.setVec3("material.diffuse", diffuse[0], diffuse[1], diffuse[2]);
+        lightingShader.setVec3("material.specular", specular[0], specular[1], specular[2]);
+        lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+        lightingShader.setVec3("light.diffuse",lightCol[0], lightCol[1], lightCol[2]); // darken diffuse light a bit
+        lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        lightingShader.setFloat("material.shininess", shine);
+        lightingShader.setVec3("light.position", light->GetPosition());
         lightingShader.setVec3("viewPos", camera.GetPosition());
         lightingShader.setMat4("projection", projection);
         lightingShader.setMat4("view", view);
@@ -169,6 +187,7 @@ int main(void)
         lightCubeShader.use();
         lightCubeShader.setMat4("projection", projection);
         lightCubeShader.setMat4("view", view);
+        lightCubeShader.setVec3("lightColor", lightCol[0], lightCol[1], lightCol[2]);
         light->Bind();
         light->UpdateModelMatrix();
         lightCubeShader.setMat4("model", light->GetModelMatrix() );
