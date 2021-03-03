@@ -168,7 +168,9 @@ int main(void)
         lightingShader.setVec3("light.diffuse",lightCol[0], lightCol[1], lightCol[2]); // darken diffuse light a bit
         lightingShader.setVec3("light.specular", lightSpecular[0], lightSpecular[1], lightSpecular[2]);
         lightingShader.setFloat("material.shininess", shine);
-        lightingShader.setVec3("light.position", light->GetPosition());
+        lightingShader.setVec3("light.position", camera.GetPosition());
+        lightingShader.setVec3("light.direction", glm::vec3(0.0f,0.0f,-1.0f));
+        lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
         lightingShader.setFloat("light.constant", 1.0f);
         lightingShader.setFloat("light.linear", 0.09f);
         lightingShader.setFloat("light.quadratic", 0.032f);
