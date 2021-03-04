@@ -88,15 +88,18 @@ int main(void)
 
     //Shaders
     Shader shader("resources/shaders/vertex_default.glsl", "resources/shaders/frag_default.glsl");
-    
-    Cube cube(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    cube.SetIndexBuffer();
+    Shader lightShader("resources/shaders/vertex_light.glsl", "resources/shaders/frag_light.glsl");
+
+    float lightPos[3] = { 1.0f, 1.0f, 1.0f };
+
+    Cube light(glm::vec3(lightPos[0], lightPos[1], lightPos[2]), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f));
+    light.SetIndexBuffer();
     Renderer renderer(ENABLE_DEPTH_TEST);
 
     Model model("resources/models/backpack.obj");
     Surface diffuseMap("resources/models/diffuse.jpg");
     Surface specularMap("resources/models/specular.jpg",1);
-    Surface roughMap("resources/models/roughness.jpg", 2);
+    float lightAmbient[3] = { 0.2f, 0.2f, 0.2f };
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -117,6 +120,8 @@ int main(void)
             ImGui::Begin("Debug");
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0 / float(ImGui::GetIO().Framerate), float(ImGui::GetIO().Framerate));
+            ImGui::SliderFloat3("Light Position",&light.GetPosition().x, -30.0f, 30.0f);
+
             ImGui::End();
 
         }
@@ -127,16 +132,33 @@ int main(void)
        
         glm::mat4 projection = glm::perspective(glm::radians(camera.GetFieldOfView()), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
         shader.use();
+        shader.setVec3("light.ambient", lightAmbient[0], lightAmbient[1], lightAmbient[2]);
+        shader.setVec3("light.diffuse", 1.0f, 0.8f, 0.2f); // darken diffuse light a bit
+        shader.setVec3("light.specular", 1.0f,1.0f,1.0f);
+        shader.setVec3("light.position", light.GetPosition());
+        shader.setFloat("light.constant", 1.0f);
+        shader.setFloat("light.linear", 0.09f);
+        shader.setFloat("light.quadratic", 0.032f);
+        shader.setFloat("material.shininess", 64.0f);
         shader.setMat4("projection", projection);
+        shader.setVec3("viewPos", camera.GetPosition());
         shader.setMat4("view", camera.GetLookAt());
         glm::mat4 modelMatrix = glm::mat4(1.0f);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
         shader.setMat4("model", modelMatrix);
-        shader.setInt("diffuse", 0);
-        shader.setInt("specular", 1);
-        shader.setInt("roughness", 2);
         model.Draw(shader);
+
+        lightShader.use();
+        lightShader.setMat4("projection", projection);
+        lightShader.setMat4("view", camera.GetLookAt());
+        lightShader.setVec3("lightColor", 1.0f,1.0f,1.0f);
+        light.Bind();
+        light.UpdateModelMatrix();
+        lightShader.setMat4("model", light.GetModelMatrix());
+
+
+        renderer.Draw(0, 36);
         /* Swap front and back buffers */
         renderer.EndFrame(window);
 

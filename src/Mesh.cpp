@@ -21,8 +21,10 @@ void Mesh::Draw(Shader& shader)
         else if (name == "texture_specular")
             number = std::to_string(specularNr++);
 
-        glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
+        shader.setInt(name + number.c_str(), i);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
+        shader.setInt("material.texture_diffuse1", 0);
+        shader.setInt("material.texture_specular1", 1);
     }
     
 
