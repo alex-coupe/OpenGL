@@ -66,6 +66,13 @@ public:
 	{
 		return m_Scale;
 	}
+
+	void SetScale(glm::vec3 scale)
+	{
+		m_Scale.x = scale.x;
+		m_Scale.y = scale.y;
+		m_Scale.z = scale.z;
+	}
 	
 	void CleanUp()
 	{

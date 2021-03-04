@@ -28,7 +28,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 1000
 #define ENABLE_DEPTH_TEST 0x000001
-
+#define ENABLE_STENCIL_TEST 0x000011
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
@@ -89,16 +89,28 @@ int main(void)
     //Shaders
     Shader shader("resources/shaders/vertex_default.glsl", "resources/shaders/frag_default.glsl");
     Shader lightShader("resources/shaders/vertex_light.glsl", "resources/shaders/frag_light.glsl");
+    Shader outlineShader("resources/shaders/vertex_stencil.glsl", "resources/shaders/frag_stencil.glsl");
 
     float lightPos[3] = { 1.0f, 1.0f, 1.0f };
 
+    Cube floor(glm::vec3(0.0f, -2.0f, -2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(5.0f, 0.1f, 5.0f));
+    floor.SetIndexBuffer();
+    Cube boxOne(glm::vec3(-1.0f, -1.0f, -2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    boxOne.SetIndexBuffer();
+    Cube boxTwo(glm::vec3(1.0f, -1.0f, -2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    boxTwo.SetIndexBuffer();
     Cube light(glm::vec3(lightPos[0], lightPos[1], lightPos[2]), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f));
     light.SetIndexBuffer();
-    Renderer renderer(ENABLE_DEPTH_TEST);
 
-    Model model("resources/models/backpack.obj");
-    Surface diffuseMap("resources/models/diffuse.jpg");
-    Surface specularMap("resources/models/specular.jpg",1);
+
+    Renderer renderer(ENABLE_DEPTH_TEST, ENABLE_STENCIL_TEST);
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+   // Model model("resources/models/backpack.obj");
+   // Surface diffuseMap("resources/models/diffuse.jpg");
+  //  Surface specularMap("resources/models/specular.jpg",1);
+    Surface floortex("resources/textures/wall.jpg");
+    Surface box("resources/textures/container.jpg", 1);
     float lightAmbient[3] = { 0.2f, 0.2f, 0.2f };
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -110,6 +122,7 @@ int main(void)
         processInput(window);
         /* Render here */
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+       
         renderer.BeginFrame();
 
         ImGui_ImplOpenGL3_NewFrame();
@@ -130,6 +143,7 @@ int main(void)
         
        
        
+
         glm::mat4 projection = glm::perspective(glm::radians(camera.GetFieldOfView()), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,projNearPlane, projFarPlane);
         shader.use();
         shader.setVec3("light.ambient", lightAmbient[0], lightAmbient[1], lightAmbient[2]);
@@ -140,14 +154,56 @@ int main(void)
         shader.setFloat("light.linear", 0.09f);
         shader.setFloat("light.quadratic", 0.032f);
         shader.setFloat("material.shininess", 64.0f);
+        shader.setInt("material.texture_diffuse1", 0);
+        shader.setInt("material.texture_specular1", 0);
         shader.setMat4("projection", projection);
         shader.setVec3("viewPos", camera.GetPosition());
         shader.setMat4("view", camera.GetLookAt());
-        glm::mat4 modelMatrix = glm::mat4(1.0f);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        shader.setMat4("model", modelMatrix);
-        model.Draw(shader);
+        glStencilMask(0x00);
+        floor.Bind();
+        floor.UpdateModelMatrix();
+        shader.setMat4("model", floor.GetModelMatrix());
+        renderer.Draw(0,36);
+
+        glStencilFunc(GL_ALWAYS, 1, 0xFF); // all fragments should pass the stencil test
+        glStencilMask(0xFF);
+
+        shader.setInt("material.texture_diffuse1", 1);
+        shader.setInt("material.texture_specular1", 1);
+        boxOne.Bind();
+        boxOne.SetScale(glm::vec3(1.0f, 1.0f, 1.0f));
+        boxOne.UpdateModelMatrix();
+        shader.setMat4("model", boxOne.GetModelMatrix());
+        renderer.Draw(0, 36);
+
+        boxTwo.Bind();
+        boxTwo.SetScale(glm::vec3(1.0f, 1.0f, 1.0f));
+        boxTwo.UpdateModelMatrix();
+        shader.setMat4("model", boxTwo.GetModelMatrix());
+        renderer.Draw(0, 36);
+        
+
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00); // disable writing to the stencil buffer
+        glDisable(GL_DEPTH_TEST);
+        
+        outlineShader.use();
+        outlineShader.setMat4("projection", projection);
+        outlineShader.setMat4("view", camera.GetLookAt());
+        boxOne.Bind();
+        boxOne.SetScale(glm::vec3(1.05f, 1.05f, 1.05f));
+        boxOne.UpdateModelMatrix();
+        outlineShader.setMat4("model", boxOne.GetModelMatrix());
+        renderer.Draw(0, 36);
+        boxTwo.Bind();
+        boxTwo.SetScale(glm::vec3(1.05f, 1.05f, 1.05f));
+        boxTwo.UpdateModelMatrix();
+        outlineShader.setMat4("model", boxTwo.GetModelMatrix());
+        renderer.Draw(0, 36);
+
+        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glEnable(GL_DEPTH_TEST);
 
         lightShader.use();
         lightShader.setMat4("projection", projection);

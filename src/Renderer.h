@@ -7,7 +7,7 @@
 
 class Renderer {
 public: 
-	Renderer(bool enableDepth);
+	Renderer(bool enableDepth, bool enableStencil);
 	void BeginFrame()const;
 	void Draw(const unsigned short indexCount) const;
 	void Draw(GLint first, GLsizei count)const;
