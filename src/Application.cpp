@@ -94,7 +94,9 @@ int main(void)
     Renderer renderer(ENABLE_DEPTH_TEST);
 
     Model model("resources/models/backpack.obj");
-    Surface diffuseMap("resources/textures/container2.png");
+    Surface diffuseMap("resources/models/diffuse.jpg");
+    Surface specularMap("resources/models/specular.jpg",1);
+    Surface roughMap("resources/models/roughness.jpg", 2);
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -104,7 +106,7 @@ int main(void)
       
         processInput(window);
         /* Render here */
-        glClearColor(0.1f, 0.5f, 0.5f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         renderer.BeginFrame();
 
         ImGui_ImplOpenGL3_NewFrame();
@@ -131,7 +133,9 @@ int main(void)
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
         shader.setMat4("model", modelMatrix);
-        shader.setInt("texture_diffuse1", 0);
+        shader.setInt("diffuse", 0);
+        shader.setInt("specular", 1);
+        shader.setInt("roughness", 2);
         model.Draw(shader);
         /* Swap front and back buffers */
         renderer.EndFrame(window);

@@ -3,9 +3,15 @@ out vec4 FragColor;
 
 in vec2 TexCoords;
 
-uniform sampler2D texture_diffuse1;
-
+uniform sampler2D diffuse;
+uniform sampler2D specular;
+uniform sampler2D roughness;
 void main()
-{    
-    FragColor = texture(texture_diffuse1, TexCoords);
+{   
+    
+    vec3 diffuseResult = texture(diffuse, TexCoords).rgb;
+    vec3 specularResult = texture(specular, TexCoords).rgb;
+    
+    vec3 result = diffuseResult + specularResult;
+    FragColor = vec4(result, 1.0f);
 }
