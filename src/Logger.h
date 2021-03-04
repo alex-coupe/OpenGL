@@ -16,3 +16,8 @@ static void GLLogErrors(const char* function, const int line, const char* file)
 		spdlog::error("[OpenGL Error] {} in {} on line {} of {}", err, function, line, file);
 	}
 }
+
+static void LogError(const char* message)
+{
+	spdlog::error("[Error] {}", message);
+}

@@ -48,5 +48,10 @@ public:
 
 	}
 
+	unsigned int GetId() const
+	{
+		return m_Id;
+	}
+
 	
 };
