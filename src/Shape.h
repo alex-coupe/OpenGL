@@ -25,9 +25,6 @@ protected:
 			float x, y, z;
 		} position;
 		struct {
-			float r, g, b;
-		} color;
-		struct {
 			float u, v;
 		} tex;
 	};

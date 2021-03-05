@@ -106,9 +106,8 @@ int main(void)
     Renderer renderer(ENABLE_DEPTH_TEST, ENABLE_STENCIL_TEST);
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-   // Model model("resources/models/backpack.obj");
-   // Surface diffuseMap("resources/models/diffuse.jpg");
-  //  Surface specularMap("resources/models/specular.jpg",1);
+    glEnable(GL_CULL_FACE);
+    //glCullFace(GL_FRONT);
     Surface floortex("resources/textures/wall.jpg");
     Surface box("resources/textures/container.jpg", 1);
     float lightAmbient[3] = { 0.2f, 0.2f, 0.2f };
@@ -159,6 +158,7 @@ int main(void)
         shader.setMat4("projection", projection);
         shader.setVec3("viewPos", camera.GetPosition());
         shader.setMat4("view", camera.GetLookAt());
+        
         glStencilMask(0x00);
         floor.Bind();
         floor.UpdateModelMatrix();
@@ -204,15 +204,6 @@ int main(void)
         glStencilMask(0xFF);
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glEnable(GL_DEPTH_TEST);
-
-        lightShader.use();
-        lightShader.setMat4("projection", projection);
-        lightShader.setMat4("view", camera.GetLookAt());
-        lightShader.setVec3("lightColor", 1.0f,1.0f,1.0f);
-        light.Bind();
-        light.UpdateModelMatrix();
-        lightShader.setMat4("model", light.GetModelMatrix());
-
 
         renderer.Draw(0, 36);
         /* Swap front and back buffers */
