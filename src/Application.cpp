@@ -107,7 +107,7 @@ int main(void)
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     glEnable(GL_CULL_FACE);
-    //glCullFace(GL_FRONT);
+    glCullFace(GL_FRONT);
     Surface floortex("resources/textures/wall.jpg");
     Surface box("resources/textures/container.jpg", 1);
     float lightAmbient[3] = { 0.2f, 0.2f, 0.2f };
