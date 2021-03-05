@@ -110,13 +110,17 @@ int main(void)
         plants.back()->SetIndexBuffer();
     }
 
+    std::sort(plants.begin(), plants.end(), [](const std::unique_ptr<Cube>& plantOne, const std::unique_ptr<Cube>& plantTwo)
+    {
+        return plantOne->GetPosition().z < plantTwo->GetPosition().z;
+    });
     Renderer renderer(ENABLE_DEPTH_TEST, ENABLE_STENCIL_TEST);
    
     Surface floortex("resources/textures/wall.jpg");
     Surface box("resources/textures/container.jpg", 1);
-    Surface grass("resources/textures/grass.png", 2);
-  // glEnable(GL_BLEND);
- //   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    Surface grass("resources/textures/blending_transparent_window.png", 2);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
