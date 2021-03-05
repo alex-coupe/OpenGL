@@ -262,3 +262,5 @@ __pycache__/
 3d-fun.vcxproj
 3d-fun.vcxproj.filters
 imgui.ini
+
+!resources/*
