@@ -115,8 +115,8 @@ int main(void)
     Surface floortex("resources/textures/wall.jpg");
     Surface box("resources/textures/container.jpg", 1);
     Surface grass("resources/textures/grass.png", 2);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  // glEnable(GL_BLEND);
+ //   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
